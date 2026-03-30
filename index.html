@@ -1,329 +1,831 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>暮城 Dusk City - 雙重世界觀空間架構</title>
-  
-  <!-- Tailwind CSS 核心 -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- React 與 ReactDOM (保留核心庫) -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  
-  <!-- 【重點修改】移除了 Babel，改用原生 JS 寫法，完美繞過 Discord Activities 的嚴格 CSP 限制 -->
-  
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- (可選) Discord Embedded App SDK -->
-  <script src="https://unpkg.com/@discord/embedded-app-sdk@1.2.0/lib/discord_sdk.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>雙重世界觀空間架構</title>
+  <meta name="description" content="Discord 文愛群世界觀地圖：表世界、交界處、裡世界。適合直接部署到 GitHub Pages。" />
   <style>
-    body {
-      margin: 0;
-      background-color: #0f172a; 
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(0, 0, 0, 0.45);
+      --panel-strong: rgba(0, 0, 0, 0.62);
+      --line: rgba(255,255,255,0.08);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --soft: #64748b;
+      --accent: #60a5fa;
+      --accent-rgb: 96, 165, 250;
+      --accent-soft: rgba(96, 165, 250, 0.22);
+      --accent-border: rgba(96, 165, 250, 0.28);
+      --river: rgba(34, 211, 238, 0.28);
+      --shadow: 0 0 30px rgba(var(--accent-rgb), 0.16);
+      --map-overlay: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.03), transparent 55%);
+      --bg-grad-1: #0f172a;
+      --bg-grad-2: #020617;
+      --bg-grad-3: #111827;
     }
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(var(--accent-rgb), 0.12), transparent 35%),
+        linear-gradient(160deg, var(--bg-grad-1), var(--bg-grad-2) 48%, var(--bg-grad-3));
+      transition: background 0.6s ease, color 0.4s ease;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      opacity: 0.35;
+      mask-image: radial-gradient(circle at center, black, transparent 85%);
+    }
+
+    body.surface {
+      --bg: #0f172a;
+      --accent: #60a5fa;
+      --accent-rgb: 96, 165, 250;
+      --accent-soft: rgba(96, 165, 250, 0.22);
+      --accent-border: rgba(96, 165, 250, 0.32);
+      --river: rgba(34, 211, 238, 0.28);
+      --bg-grad-1: #0f172a;
+      --bg-grad-2: #020617;
+      --bg-grad-3: #111827;
+    }
+
+    body.boundary {
+      --bg: #2e1065;
+      --accent: #e879f9;
+      --accent-rgb: 232, 121, 249;
+      --accent-soft: rgba(232, 121, 249, 0.22);
+      --accent-border: rgba(232, 121, 249, 0.30);
+      --river: rgba(168, 85, 247, 0.28);
+      --bg-grad-1: #2e1065;
+      --bg-grad-2: #09090b;
+      --bg-grad-3: #1e1b4b;
+    }
+
+    body.inner {
+      --bg: #450a0a;
+      --accent: #f87171;
+      --accent-rgb: 248, 113, 113;
+      --accent-soft: rgba(248, 113, 113, 0.22);
+      --accent-border: rgba(248, 113, 113, 0.28);
+      --river: rgba(153, 27, 27, 0.35);
+      --bg-grad-1: #450a0a;
+      --bg-grad-2: #0c0a09;
+      --bg-grad-3: #1f0a0a;
+    }
+
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 20px 36px;
+    }
+
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--accent);
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(var(--accent-rgb), 0.25);
+    }
+
+    h1 {
+      margin: 10px 0 10px;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.05;
+      letter-spacing: 0.04em;
+    }
+
+    .subhead {
+      color: var(--muted);
+      font-size: 1rem;
+      letter-spacing: 0.22em;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .tab {
+      appearance: none;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.03);
+      color: var(--soft);
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .tab:hover {
+      transform: translateY(-1px);
+      color: var(--text);
+      border-color: rgba(255,255,255,0.16);
+    }
+
+    .tab.active {
+      color: var(--accent);
+      border-color: var(--accent-border);
+      background: var(--accent-soft);
+      box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.18);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.75fr 1fr;
+      gap: 24px;
+      min-height: 680px;
+    }
+
+    .panel {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--accent-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .map-panel {
+      min-height: 660px;
+      isolation: isolate;
+    }
+
+    .map-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--map-overlay);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .map-header {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .map-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: clamp(1.3rem, 2.4vw, 2rem);
+      font-weight: 900;
+      color: var(--accent);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(var(--accent-rgb), 0.3);
+    }
+
+    .map-subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.96rem;
+      letter-spacing: 0.08em;
+    }
+
+    .map-canvas {
+      position: relative;
+      min-height: 660px;
+      overflow: hidden;
+    }
+
+    .layer-bg,
+    .river,
+    .node-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    .layer-bg {
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .river {
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .river::before {
+      content: "";
+      position: absolute;
+      left: -4%;
+      right: -4%;
+      top: 60%;
+      height: 74px;
+      transform: translateY(-50%) skewY(-3deg);
+      background: linear-gradient(90deg, transparent 0%, var(--river) 15%, rgba(255,255,255,0.10) 50%, var(--river) 85%, transparent 100%);
+      filter: blur(7px);
+      opacity: 0.9;
+    }
+
+    body.inner .river::before {
+      display: none;
+    }
+
+    .inner-bottom-glow {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 45%;
+      background: linear-gradient(to top, rgba(127, 29, 29, 0.26), transparent);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    body.inner .inner-bottom-glow { opacity: 1; }
+
+    .surface-buildings .building,
+    .boundary-shatters .shatter,
+    .inner-runes .rune,
+    .inner-runes .ring {
+      transition: opacity 0.45s ease;
+    }
+
+    .surface-buildings { opacity: 0; }
+    body.surface .surface-buildings { opacity: 1; }
+
+    .boundary-shatters { opacity: 0; }
+    body.boundary .boundary-shatters { opacity: 1; }
+
+    .inner-runes { opacity: 0; }
+    body.inner .inner-runes { opacity: 1; }
+
+    .node-layer { z-index: 2; }
+
+    .node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      color: #cbd5e1;
+      padding: 0;
+    }
+
+    .node-marker {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(15, 23, 42, 0.78);
+      color: #cbd5e1;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .node:hover .node-marker {
+      transform: scale(1.05);
+      color: var(--accent);
+      border-color: rgba(var(--accent-rgb), 0.58);
+      box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.2);
+    }
+
+    .node.active .node-marker {
+      color: var(--accent);
+      border: 2px solid rgba(var(--accent-rgb), 0.58);
+      background: rgba(0, 0, 0, 0.72);
+      box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.34);
+      transform: scale(1.08);
+    }
+
+    .node-label {
+      padding: 7px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+      background: rgba(0, 0, 0, 0.78);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+
+    .node:hover .node-label {
+      transform: translateY(-1px);
+      color: #fff;
+    }
+
+    .node.active .node-label {
+      color: var(--accent);
+      border-color: rgba(var(--accent-rgb), 0.45);
+    }
+
+    .node.active .pulse {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 2px solid rgba(var(--accent-rgb), 0.4);
+      animation: ping 1.8s ease-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes ping {
+      0% { transform: scale(0.86); opacity: 0.75; }
+      70% { opacity: 0.1; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    .details {
+      padding: 26px;
+      background: var(--panel-strong);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 660px;
+    }
+
+    .details::before {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: rgba(var(--accent-rgb), 0.12);
+      filter: blur(44px);
+      pointer-events: none;
+    }
+
+    .details-content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .detail-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(var(--accent-rgb), 0.24);
+      border-radius: 14px;
+      flex: 0 0 auto;
+      box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.12);
+    }
+
+    .detail-title {
+      margin: 0;
+      font-size: clamp(1.8rem, 3.6vw, 2.5rem);
+      line-height: 1.1;
+    }
+
+    .detail-sub {
+      margin: 4px 0 0;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .detail-desc {
+      margin: 22px 0 24px;
+      padding: 18px;
+      background: rgba(0,0,0,0.32);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 18px;
+      color: #d1d5db;
+      line-height: 1.9;
+      font-size: 1rem;
+      text-align: justify;
+    }
+
+    .detail-section-title {
+      margin: auto 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.83rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-weight: 800;
+    }
+
+    .places {
+      display: grid;
+      gap: 10px;
+    }
+
+    .place {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 13px 14px;
+      color: #e5e7eb;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .place:hover {
+      transform: translateY(-1px);
+      border-color: rgba(var(--accent-rgb), 0.28);
+      background: rgba(0,0,0,0.56);
+    }
+
+    .place-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.7);
+      flex: 0 0 auto;
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      color: var(--soft);
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .map-panel,
+      .details,
+      .map-canvas {
+        min-height: 560px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding: 18px 14px 28px;
+      }
+
+      .tabs {
+        gap: 8px;
+      }
+
+      .tab {
+        width: calc(33.333% - 6px);
+        min-width: 0;
+        padding: 11px 12px;
+        border-radius: 16px;
+        letter-spacing: 0.08em;
+        font-size: 0.84rem;
+      }
+
+      .map-panel,
+      .details,
+      .map-canvas {
+        min-height: 520px;
+      }
+
+      .node-marker {
+        width: 48px;
+        height: 48px;
+      }
+
+      .node-label {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+      }
+
+      .details {
+        padding: 20px;
+      }
+
+      .detail-desc {
+        font-size: 0.96rem;
+        line-height: 1.8;
+      }
+    }
   </style>
 </head>
-<body>
-  <div id="root"></div>
+<body class="surface">
+  <div class="wrap">
+    <header class="header">
+      <div class="kicker">
+        <span>◆</span>
+        <span>雙重世界觀空間架構</span>
+      </div>
+      <h1>陣營導覽與地點檢索系統</h1>
+      <div class="subhead">表世界／交界處／裡世界</div>
+    </header>
 
-  <!-- 【重點修改】使用標準的 application/javascript，而不是 text/babel -->
-  <script type="application/javascript">
-    const { useState, useEffect } = React;
-    const e = React.createElement; // 建立 React 元素的簡寫，取代 JSX
+    <nav class="tabs" aria-label="圖層切換">
+      <button class="tab active" data-layer="surface">表世界</button>
+      <button class="tab" data-layer="boundary">交界處</button>
+      <button class="tab" data-layer="inner">裡世界</button>
+    </nav>
 
-    // 通知 Discord SDK 活動已經準備好 (可選功能)
-    window.addEventListener('load', () => {
-      if (window.DiscordSDK) {
-        try {
-          const discordSdk = new window.DiscordSDK.DiscordSDK(undefined);
-          discordSdk.ready().catch(() => {/* 忽略無 Client ID 報錯 */});
-        } catch(err) {
-          console.log("Discord SDK Init skipped.");
-        }
-      }
-    });
+    <main class="layout">
+      <section class="panel map-panel" aria-label="世界觀地圖">
+        <div class="map-header">
+          <div class="map-title" id="mapTitle"></div>
+          <div class="map-subtitle" id="mapSubtitle"></div>
+        </div>
 
-    // 自訂圖標元件 (原生 JS 寫法)
-    const Icon = ({ name, size = 24, className = "" }) => {
-      if (!window.lucide || !window.lucide.icons) return null;
+        <div class="map-canvas" id="mapCanvas">
+          <svg class="layer-bg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <pattern id="gridLarge" width="8" height="8" patternUnits="userSpaceOnUse">
+                <path d="M 8 0 L 0 0 0 8" fill="none" stroke="rgba(255,255,255,0.045)" stroke-width="0.18"></path>
+              </pattern>
+              <pattern id="gridSmall" width="2" height="2" patternUnits="userSpaceOnUse">
+                <path d="M 2 0 L 0 0 0 2" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="0.08"></path>
+              </pattern>
+            </defs>
+            <g class="surface-buildings" id="surfaceBuildings">
+              <rect width="100" height="100" fill="url(#gridLarge)"></rect>
+              <rect width="100" height="100" fill="url(#gridSmall)"></rect>
+            </g>
+            <g class="boundary-shatters" id="boundaryShatters"></g>
+            <g class="inner-runes" id="innerRunes"></g>
+          </svg>
 
-      const getIconDef = (iconName) => {
-        if (window.lucide.icons[iconName]) return window.lucide.icons[iconName];
-        const camel = iconName.charAt(0).toLowerCase() + iconName.slice(1);
-        if (window.lucide.icons[camel]) return window.lucide.icons[camel];
-        return null;
-      };
+          <div class="river"></div>
+          <div class="inner-bottom-glow"></div>
+          <div class="node-layer" id="nodeLayer"></div>
+        </div>
+      </section>
 
-      const iconDef = getIconDef(name);
-      if (!iconDef) return null;
+      <aside class="panel details" aria-live="polite">
+        <div class="details-content" id="details"></div>
+      </aside>
+    </main>
+  </div>
 
-      const toCamelCase = (str) => {
-        if (str.startsWith('data-')) return str;
-        return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-      };
-
-      const children = Array.isArray(iconDef) ? iconDef.map(([tag, attrs], index) => {
-        const props = { key: index };
-        if (attrs) {
-          for (const key of Object.keys(attrs)) {
-            const reactKey = key === 'class' ? 'className' : toCamelCase(key);
-            props[reactKey] = attrs[key];
-          }
-        }
-        return e(tag, props);
-      }) : null;
-
-      return e('svg', {
-        xmlns: 'http://www.w3.org/2000/svg',
-        width: size,
-        height: size,
-        viewBox: '0 0 24 24',
-        fill: 'none',
-        stroke: 'currentColor',
-        strokeWidth: '2',
-        strokeLinecap: 'round',
-        strokeLinejoin: 'round',
-        className: className ? `lucide lucide-${name} ${className}` : `lucide lucide-${name}`
-      }, children);
-    };
-
-    // 預先生成背景特效參數
-    const bgBuildings = Array.from({ length: 225 }).map((_, i) => ({
-      x: (i % 15) * 7 + Math.sin(i) * 2,
-      y: Math.floor(i / 15) * 7 + Math.cos(i) * 2,
-      w: 1.5 + Math.abs(Math.sin(i * 1.5)) * 4,
-      h: 1.5 + Math.abs(Math.cos(i * 2.5)) * 5,
-      op: 0.05 + Math.abs(Math.sin(i * 3)) * 0.15
-    }));
-
-    const bgShatters = Array.from({ length: 45 }).map((_, i) => ({
-      x1: 50 + Math.sin(i * 13) * 60, y1: 50 + Math.cos(i * 17) * 60,
-      x2: 50 + Math.cos(i * 11) * 60, y2: 50 + Math.sin(i * 19) * 60,
-      op: 0.05 + Math.abs(Math.sin(i)) * 0.25
-    }));
-
-    const bgRunes = Array.from({ length: 6 }).map((_, i) => ({
-      r: 10 + i * 14,
-      dash: `${5 + i * 4}, ${10 + i * 2}`,
-      op: 0.05 + (0.05 * (6 - i))
-    }));
-
-    // 數據設定
+  <script>
     const mapData = {
       surface: {
-        theme: 'bg-slate-900', title: '表世界', subtitle: '虛妄的和平與日常', color: 'text-blue-400', border: 'border-blue-500/30',
+        title: '表世界',
+        subtitle: '虛妄的和平與日常',
         locations: [
-          { id: 'w', name: '西區', sub: '學園與高尚住宅區', x: 25, y: 35, icon: 'BookOpen', places: ['聖安德烈私立大學', '半山別墅區', '隱私植物園'], desc: '綠意盎然的富人區與菁英學區。表面上治安優良，實際上是許多高階異族隱藏身分、購置資產（與圈養金絲雀）的安樂窩。百年學府的地下圖書館藏著無人知曉的禁書。' },
-          { id: 'c', name: '中區', sub: '霓虹商業區', x: 50, y: 30, icon: 'Building2', places: ['世紀大廈 (企業總部)', '中央車站', '聖安德烈綜合醫院', '雲端景觀酒店'], desc: '權力、財富與謊言的中心。摩天大樓與不夜城交織，白領的修羅場，也是跨界偷渡客最容易隱藏的人海。五星級酒店的高層套房裡，常上演著權力不對等的危險交易。' },
-          { id: 'e', name: '東區', sub: '舊城老街', x: 75, y: 35, icon: 'Map', places: ['古董街', '舊神社廢墟', '狹巷無名居酒屋'], desc: '都市歷史遺留的盲區，建築密集且終年不見陽光。充滿線香與霉味，是都市怪談與靈異事件的發源地，也是地下情報最密集的灰色地帶。' },
-          { id: 's', name: '南岸', sub: '廢棄工業港區', x: 50, y: 80, icon: 'Navigation', places: ['貨櫃集散地', '廢棄造船廠', '地下黑市拳館'], desc: '遠離市中心的邊緣地帶，佈滿鐵鏽與機油味。幫派火拼、非法走私的溫床，同時也是「清道夫」最常銷毀超自然證據與拋屍的處理場。' },
-          { id: 'r', name: '霧川與橋樑', sub: '分隔都市的深邃水脈', x: 50, y: 60, icon: 'Eye', places: ['霧川主幹道', '白霧大橋'], desc: '貫穿整座都市的寬闊河流，水面常年瀰漫不散的濃霧。連結南北岸的橋樑在深夜時常發生無法解釋的「神隱」失蹤案。' },
-          { id: 'p', name: '中央警察總局', sub: '表世界秩序的維持者', x: 35, y: 45, icon: 'ShieldAlert', places: ['第七課秘密辦公區', '常規拘留室'], desc: '表面上是維護都市治安的最高機關。但在一般警員接觸不到的深處，隱藏著專門處理超自然案件、負責掩蓋真相的特殊部隊「第七課」。' }
+          { id: 'w', icon: 'book', name: '西區', sub: '學園與高尚住宅區', x: 25, y: 35, places: ['聖安德烈私立大學', '半山別墅區', '隱私植物園'], desc: '綠意盎然的富人區與菁英學區。表面上治安優良，實際上是許多高階異族隱藏身分、購置資產與圈養金絲雀的安樂窩。百年學府的地下圖書館藏著無人知曉的禁書。' },
+          { id: 'c', icon: 'building', name: '中區', sub: '霓虹商業區', x: 50, y: 30, places: ['世紀大廈（企業總部）', '中央車站', '聖安德烈綜合醫院', '雲端景觀酒店'], desc: '權力、財富與謊言的中心。摩天大樓與不夜城交織，白領的修羅場，也是跨界偷渡客最容易隱藏的人海。五星級酒店的高層套房裡，常上演權力不對等的危險交易。' },
+          { id: 'e', icon: 'map', name: '東區', sub: '舊城老街', x: 75, y: 35, places: ['古董街', '舊神社廢墟', '狹巷無名居酒屋'], desc: '都市歷史遺留的盲區，建築密集且終年不見陽光。充滿線香與霉味，是都市怪談與靈異事件的發源地，也是地下情報最密集的灰色地帶。' },
+          { id: 's', icon: 'navigation', name: '南岸', sub: '廢棄工業港區', x: 50, y: 80, places: ['貨櫃集散地', '廢棄造船廠', '地下黑市拳館'], desc: '遠離市中心的邊緣地帶，佈滿鐵鏽與機油味。幫派火拼、非法走私的溫床，同時也是「清道夫」最常銷毀超自然證據與拋屍的處理場。' },
+          { id: 'r', icon: 'eye', name: '霧川與橋樑', sub: '分隔都市的深邃水脈', x: 50, y: 60, places: ['霧川主幹道', '白霧大橋'], desc: '貫穿整座都市的寬闊河流，水面常年瀰漫不散的濃霧。連結南北岸的橋樑在深夜時常發生無法解釋的「神隱」失蹤案。' },
+          { id: 'p', icon: 'shield', name: '中央警察總局', sub: '表世界秩序的維持者', x: 35, y: 45, places: ['第七課秘密辦公區', '常規拘留室'], desc: '表面上是維護都市治安的最高機關。但在一般警員接觸不到的深處，隱藏著專門處理超自然案件、負責掩蓋真相的特殊部隊「第七課」。' }
         ]
       },
       boundary: {
-        theme: 'bg-indigo-950', title: '交界處', subtitle: '逢魔時刻的灰暗錨點', color: 'text-fuchsia-400', border: 'border-fuchsia-500/30',
+        title: '交界處',
+        subtitle: '逢魔時刻的灰暗錨點',
         locations: [
-          { id: 'b1', name: '第13號月台', sub: '入口：中央車站 地下深處', x: 45, y: 35, icon: 'Train', places: ['無人售票機', '幽靈列車'], desc: '觸發條件：凌晨2:44，將沾血硬幣投入特定的舊售票機。濃霧瀰漫的月台永遠停靠著一列無目的地列車，是通往裡世界各階層的地下樞紐。' },
-          { id: 'b2', name: '渡鴉酒館', sub: '入口：東區古董街 死胡同底', x: 75, y: 50, icon: 'Wine', places: ['情報吧台', '絕對中立包廂'], desc: '觸發條件：逢魔時刻對紅磚牆敲擊三下。受到古老契約保護的絕對中立安全屋，各方勢力在此用情報、壽命或肉體換取一杯特調。' },
-          { id: 'b3', name: 'B4 太平間專用電梯', sub: '入口：聖安德烈綜合醫院', x: 60, y: 25, icon: 'Hospital', places: ['血庫樞紐通道', '暗醫秘密通道'], desc: '觸發條件：刷入高層/暗醫專屬黑卡。電梯將無視物理法則無止盡下沉，直達裡世界的醫療黑市，生與死、救贖與獵食的灰色通道。' },
-          { id: 'b4', name: '零號證物室／收容所', sub: '入口：中央警察總局 地下', x: 35, y: 25, icon: 'ShieldAlert', places: ['封印大門', '臨時拘留室'], desc: '觸發條件：第七課特勤探員的專屬密碼。刻滿防禦魔法陣的合金大門，跨界逮捕、私下審訊與無情遣返危險異族的官方秘密通道。' },
-          { id: 'b5', name: '白霧大橋 (異化)', sub: '入口：霧川之上', x: 50, y: 65, icon: 'Ghost', places: ['境界線裂縫', '血月荒原邊緣'], desc: '觸發條件：起大霧的深夜獨自過橋且絕對不可回頭。走過橋的另一端，繁華的現代夜景將瞬間剝落，直接踏入裡世界充滿瘴氣的邊緣地帶。' },
-          { id: 'b6', name: '零號當鋪', sub: '入口：隨機顯現的深巷', x: 25, y: 55, icon: 'Activity', places: ['契約交易臺', '靈魂典當庫'], desc: '觸發條件：在極度絕望與渴求的狀態下迷路。看似賣古董的小店，什麼都收，什麼都賣。人類在此典當「壽命」、「記憶」或「身體使用權」來換取奇蹟。' }
+          { id: 'b1', icon: 'train', name: '第13號月台', sub: '入口：中央車站地下深處', x: 45, y: 35, places: ['無人售票機', '幽靈列車'], desc: '觸發條件：凌晨 2:44，將沾血硬幣投入特定舊售票機。濃霧瀰漫的月台永遠停靠著一列無目的地列車，是通往裡世界各階層的地下樞紐。' },
+          { id: 'b2', icon: 'wine', name: '渡鴉酒館', sub: '入口：東區古董街死胡同底', x: 75, y: 50, places: ['情報吧台', '絕對中立包廂'], desc: '觸發條件：逢魔時刻對紅磚牆敲擊三下。受到古老契約保護的絕對中立安全屋，各方勢力在此用情報、壽命或肉體換取一杯特調。' },
+          { id: 'b3', icon: 'hospital', name: 'B4 太平間專用電梯', sub: '入口：聖安德烈綜合醫院', x: 60, y: 25, places: ['血庫樞紐通道', '暗醫秘密通道'], desc: '觸發條件：刷入高層或暗醫專屬黑卡。電梯將無視物理法則無止盡下沉，直達裡世界醫療黑市，生與死、救贖與獵食的灰色通道。' },
+          { id: 'b4', icon: 'shield', name: '零號證物室／收容所', sub: '入口：中央警察總局地下', x: 35, y: 25, places: ['封印大門', '臨時拘留室'], desc: '觸發條件：第七課特勤探員的專屬密碼。刻滿防禦魔法陣的合金大門，是跨界逮捕、私下審訊與無情遣返危險異族的官方秘密通道。' },
+          { id: 'b5', icon: 'ghost', name: '白霧大橋（異化）', sub: '入口：霧川之上', x: 50, y: 65, places: ['境界線裂縫', '血月荒原邊緣'], desc: '觸發條件：起大霧的深夜獨自過橋且絕對不可回頭。走過橋的另一端，繁華的現代夜景會瞬間剝落，直接踏入裡世界充滿瘴氣的邊緣地帶。' },
+          { id: 'b6', icon: 'activity', name: '零號當鋪', sub: '入口：隨機顯現的深巷', x: 25, y: 55, places: ['契約交易臺', '靈魂典當庫'], desc: '觸發條件：在極度絕望與渴求的狀態下迷路。看似賣古董的小店，什麼都收，什麼都賣。人類在此典當壽命、記憶或身體使用權來換取奇蹟。' }
         ]
       },
       inner: {
-        theme: 'bg-red-950', title: '裡世界', subtitle: '慾望、血統與深淵', color: 'text-red-500', border: 'border-red-500/30',
+        title: '裡世界',
+        subtitle: '慾望、血統與深淵',
         locations: [
-          { id: 'i1', name: '猩紅高地', sub: '上層領地', x: 50, y: 15, icon: 'Moon', places: ['純血貴族城堡群', '鮮血薔薇園'], desc: '懸浮於半空的哥德式建築群。純血吸血鬼與高等惡魔的專屬領地，極度奢華且冰冷，人類在此僅是被精心圈養的珍饈或專屬血奴。' },
-          { id: 'i2', name: '永夜花街與市集', sub: '中層不夜城', x: 25, y: 40, icon: 'Wine', places: ['極樂樓', '迷幻香料館', '黑市拍賣行'], desc: '永遠閃爍迷幻霓虹的享樂區。魅魔、妖狐聚集的銷金窟，空氣中瀰漫催情薰香，是跨越道德邊界的極致放縱之地。' },
-          { id: 'i3', name: '鐵血邊界站', sub: '中層執法區', x: 45, y: 35, icon: 'ShieldAlert', places: ['兩界海關', '審訊高塔'], desc: '對接警察總局零號門。駐紮著兩界全副武裝的執法官，審查簽證，並無情鎮壓任何企圖非法偷渡或破壞兩界協議的危險種。' },
-          { id: 'i4', name: '深淵療養院', sub: '中層醫療區', x: 70, y: 35, icon: 'Activity', places: ['地下血市', '肢體改造室', '契約病房'], desc: '對接聖安德烈醫院B4電梯。提供異種專屬的黑魔法治療，同時也是都市最大的合法血液與活體器官交易中心，付不出醫藥費只能用肉體償還。' },
-          { id: 'i5', name: '荊棘廢土與鬥技場', sub: '底層流放地', x: 50, y: 80, icon: 'Skull', places: ['地下鬥技場', '罪人礦坑'], desc: '充滿瘴氣與血腥味的荒蕪之地。無規則生死搏鬥的野蠻舞台，高層貴族常來此觀賞殺戮，戰敗者將直接淪為拍賣台上的禁臠與奴隸。' },
-          { id: 'i6', name: '迷霧暗林', sub: '邊緣狩獵場', x: 75, y: 65, icon: 'Eye', places: ['獸族領地', '月光祭壇', '禁忌之泉'], desc: '終年籠罩在迷霧與幽暗中的原始森林，狼人與高階魔獸的棲息地。崇尚絕對的野蠻與弱肉強食，常有異族在此舉辦殘酷的「人類狩獵祭」。' }
+          { id: 'i1', icon: 'moon', name: '猩紅高地', sub: '上層領地', x: 50, y: 15, places: ['純血貴族城堡群', '鮮血薔薇園'], desc: '懸浮於半空的哥德式建築群。純血吸血鬼與高等惡魔的專屬領地，極度奢華且冰冷，人類在此僅是被精心圈養的珍饈或專屬血奴。' },
+          { id: 'i2', icon: 'wine', name: '永夜花街與市集', sub: '中層不夜城', x: 25, y: 40, places: ['極樂樓', '迷幻香料館', '黑市拍賣行'], desc: '永遠閃爍迷幻霓虹的享樂區。魅魔、妖狐聚集的銷金窟，空氣中瀰漫催情薰香，是跨越道德邊界的極致放縱之地。' },
+          { id: 'i3', icon: 'shield', name: '鐵血邊界站', sub: '中層執法區', x: 45, y: 35, places: ['兩界海關', '審訊高塔'], desc: '對接警察總局零號門。駐紮著兩界全副武裝的執法官，審查簽證，並無情鎮壓任何企圖非法偷渡或破壞兩界協議的危險種。' },
+          { id: 'i4', icon: 'activity', name: '深淵療養院', sub: '中層醫療區', x: 70, y: 35, places: ['地下血市', '肢體改造室', '契約病房'], desc: '對接聖安德烈醫院 B4 電梯。提供異種專屬的黑魔法治療，同時也是都市最大的合法血液與活體器官交易中心，付不出醫藥費就只能用肉體償還。' },
+          { id: 'i5', icon: 'skull', name: '荊棘廢土與鬥技場', sub: '底層流放地', x: 50, y: 80, places: ['地下鬥技場', '罪人礦坑'], desc: '充滿瘴氣與血腥味的荒蕪之地。無規則生死搏鬥的野蠻舞台，高層貴族常來此觀賞殺戮，戰敗者將直接淪為拍賣臺上的禁臠與奴隸。' },
+          { id: 'i6', icon: 'eye', name: '迷霧暗林', sub: '邊緣狩獵場', x: 75, y: 65, places: ['獸族領地', '月光祭壇', '禁忌之泉'], desc: '終年籠罩在迷霧與幽暗中的原始森林，狼人與高階魔獸的棲息地。崇尚絕對的野蠻與弱肉強食，常有異族在此舉辦殘酷的人類狩獵祭。' }
         ]
       }
     };
 
-    // 主要的 Map 元件 (原生 JS 寫法)
-    function DuskCityMap() {
-      const [activeLayer, setActiveLayer] = useState('surface');
-      const [selectedLoc, setSelectedLoc] = useState(mapData.surface.locations[1]);
+    const iconSVG = {
+      map: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>',
+      book: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
+      building: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5"></rect><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M12 21v-3"></path></svg>',
+      navigation: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>',
+      eye: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+      shield: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v5c0 5-3.4 9.7-7 11-3.6-1.3-7-6-7-11V6l7-4z"></path><path d="M12 8v5"></path><circle cx="12" cy="16.5" r="0.8" fill="currentColor" stroke="none"></circle></svg>',
+      train: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="13" rx="2"></rect><path d="M8 7h8M9 18l-2 3M15 18l2 3M8 11h.01M16 11h.01"></path></svg>',
+      wine: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8v3a4 4 0 0 1-8 0V3z"></path><path d="M12 10v8M9 21h6"></path></svg>',
+      hospital: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14"></path><path d="M9 21v-4h6v4M12 8v6M9 11h6"></path></svg>',
+      ghost: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18c-1.5 0-5-1.8-5-7a8 8 0 0 1 16 0c0 5.2-3.5 7-5 7l-2-2-2 2-2-2-2 2z"></path><path d="M10 10h.01M14 10h.01M10 13c.7.7 1.3 1 2 1s1.3-.3 2-1"></path></svg>',
+      activity: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>',
+      moon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg>',
+      skull: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a8 8 0 0 0-8 8c0 3 1.5 4.5 3 5.5V19a1 1 0 0 0 1 1h1v1h2v-1h2v1h2v-1h1a1 1 0 0 0 1-1v-2.5c1.5-1 3-2.5 3-5.5a8 8 0 0 0-8-8z"></path><circle cx="9" cy="11" r="1.2"></circle><circle cx="15" cy="11" r="1.2"></circle><path d="M10 15h4"></path></svg>',
+      pin: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.33-6-11a6 6 0 0 1 12 0c0 5.67-6 11-6 11z"></path><circle cx="12" cy="10" r="2.2"></circle></svg>'
+    };
 
-      const layerInfo = mapData[activeLayer];
+    const layerOrder = ['surface', 'boundary', 'inner'];
+    let activeLayer = 'surface';
+    const selectedByLayer = {
+      surface: mapData.surface.locations[1].id,
+      boundary: mapData.boundary.locations[0].id,
+      inner: mapData.inner.locations[0].id
+    };
 
-      const handleLayerSwitch = (layer) => {
-        setActiveLayer(layer);
-        setSelectedLoc(mapData[layer].locations[0]);
-      };
+    const tabs = Array.from(document.querySelectorAll('.tab'));
+    const nodeLayer = document.getElementById('nodeLayer');
+    const details = document.getElementById('details');
+    const mapTitle = document.getElementById('mapTitle');
+    const mapSubtitle = document.getElementById('mapSubtitle');
+    const surfaceBuildings = document.getElementById('surfaceBuildings');
+    const boundaryShatters = document.getElementById('boundaryShatters');
+    const innerRunes = document.getElementById('innerRunes');
 
-      const navButtons = [
-        { id: 'surface', label: '表世界', clr: 'hover:border-blue-400 hover:text-blue-300', activeClr: 'bg-blue-900/50 border-blue-400 text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.5)]' },
-        { id: 'boundary', label: '交界處', clr: 'hover:border-fuchsia-400 hover:text-fuchsia-300', activeClr: 'bg-fuchsia-900/50 border-fuchsia-400 text-fuchsia-300 shadow-[0_0_15px_rgba(217,70,239,0.5)]' },
-        { id: 'inner', label: '裡世界', clr: 'hover:border-red-400 hover:text-red-300', activeClr: 'bg-red-900/50 border-red-400 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.5)]' }
-      ];
+    function buildBackgrounds() {
+      const buildingRects = [];
+      for (let i = 0; i < 225; i++) {
+        const x = (i % 15) * 7 + Math.sin(i) * 2;
+        const y = Math.floor(i / 15) * 7 + Math.cos(i) * 2;
+        const w = 1.5 + Math.abs(Math.sin(i * 1.5)) * 4;
+        const h = 1.5 + Math.abs(Math.cos(i * 2.5)) * 5;
+        const op = 0.05 + Math.abs(Math.sin(i * 3)) * 0.15;
+        buildingRects.push(`<rect class="building" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" rx="0.4" fill="rgba(96,165,250,${op.toFixed(3)})" stroke="rgba(96,165,250,${Math.min(op * 1.8, 0.35).toFixed(3)})" stroke-width="0.15"></rect>`);
+      }
+      surfaceBuildings.insertAdjacentHTML('beforeend', buildingRects.join(''));
 
-      return e('div', { className: `min-h-screen ${layerInfo.theme} text-gray-100 p-4 md:p-8 font-sans transition-colors duration-700 flex flex-col` },
-        
-        // 頂部標題
-        e('div', { className: "max-w-6xl mx-auto w-full mb-8" },
-          e('h1', { className: "text-4xl md:text-5xl font-bold tracking-wider mb-2 text-white drop-shadow-lg flex items-center gap-4" },
-            e('span', { className: `text-3xl md:text-4xl font-bold opacity-90 ${layerInfo.color}` }, "[ 雙重世界觀空間架構 ]")
-          ),
-          e('p', { className: "text-gray-400 text-lg tracking-widest" }, "陣營導覽與地點檢索系統")
-        ),
+      const shatterLines = [];
+      for (let i = 0; i < 45; i++) {
+        const x1 = 50 + Math.sin(i * 13) * 60;
+        const y1 = 50 + Math.cos(i * 17) * 60;
+        const x2 = 50 + Math.cos(i * 11) * 60;
+        const y2 = 50 + Math.sin(i * 19) * 60;
+        const op = 0.05 + Math.abs(Math.sin(i)) * 0.25;
+        const sw = 0.18 + Math.abs(Math.sin(i)) * 0.25;
+        shatterLines.push(`<line class="shatter" x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="rgba(232,121,249,${op.toFixed(3)})" stroke-width="${sw.toFixed(3)}"></line>`);
+      }
+      shatterLines.push('<polygon points="20,30 25,25 22,40" fill="rgba(232,121,249,0.12)" stroke="rgba(232,121,249,0.18)" stroke-width="0.2"></polygon>');
+      shatterLines.push('<polygon points="70,60 80,55 75,75" fill="rgba(232,121,249,0.12)" stroke="rgba(232,121,249,0.18)" stroke-width="0.2"></polygon>');
+      shatterLines.push('<polygon points="40,80 50,70 45,90" fill="rgba(232,121,249,0.12)" stroke="rgba(232,121,249,0.18)" stroke-width="0.2"></polygon>');
+      boundaryShatters.innerHTML = shatterLines.join('');
 
-        // 導航按鈕
-        e('div', { className: "max-w-6xl mx-auto w-full flex space-x-2 md:space-x-4 mb-6 relative z-10" },
-          navButtons.map(btn => 
-            e('button', {
-              key: btn.id,
-              onClick: () => handleLayerSwitch(btn.id),
-              className: `px-6 py-3 border-b-2 font-medium tracking-widest transition-all duration-300 ${
-                activeLayer === btn.id ? btn.activeClr : `border-transparent text-gray-500 ${btn.clr}`
-              }`
-            }, btn.label)
-          )
-        ),
-
-        // 內容區塊
-        e('div', { className: "max-w-6xl mx-auto w-full flex flex-col lg:flex-row gap-6 lg:gap-8 flex-grow" },
-          
-          // 左側地圖視覺區
-          e('div', { className: `relative w-full lg:w-2/3 bg-black/40 rounded-2xl border ${layerInfo.border} overflow-hidden min-h-[450px] shadow-2xl transition-all duration-500` },
-            
-            // SVG 背景特效
-            e('svg', { className: "absolute inset-0 w-full h-full pointer-events-none", style: { zIndex: 0 } },
-              e('defs', null,
-                e('pattern', { id: "grid", width: "40", height: "40", patternUnits: "userSpaceOnUse" },
-                  e('path', { d: "M 40 0 L 0 0 0 40", fill: "none", stroke: "rgba(255,255,255,0.03)", strokeWidth: "1" })
-                ),
-                e('pattern', { id: "smallGrid", width: "10", height: "10", patternUnits: "userSpaceOnUse" },
-                  e('path', { d: "M 10 0 L 0 0 0 10", fill: "none", stroke: "rgba(255,255,255,0.015)", strokeWidth: "0.5" })
-                )
-              ),
-              e('rect', { width: "100%", height: "100%", fill: "url(#grid)", className: `transition-opacity duration-700 ${activeLayer === 'surface' ? 'opacity-100' : 'opacity-0'}` }),
-              e('rect', { width: "100%", height: "100%", fill: "url(#smallGrid)", className: `transition-opacity duration-700 ${activeLayer === 'surface' ? 'opacity-100' : 'opacity-0'}` }),
-
-              // 表世界建築背景
-              e('g', { className: `transition-opacity duration-700 ${activeLayer === 'surface' ? 'opacity-100' : 'opacity-0'}` },
-                bgBuildings.map((b, i) => e('rect', {
-                  key: `b-${i}`, x: `${b.x}%`, y: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%`,
-                  fill: `rgba(59, 130, 246, ${b.op})`, stroke: `rgba(59, 130, 246, ${b.op * 2})`, strokeWidth: "1", rx: "1"
-                }))
-              ),
-
-              // 交界處裂痕背景
-              e('g', { className: `transition-opacity duration-700 ${activeLayer === 'boundary' ? 'opacity-100' : 'opacity-0'}` },
-                bgShatters.map((s, i) => e('line', {
-                  key: `s-${i}`, x1: `${s.x1}%`, y1: `${s.y1}%`, x2: `${s.x2}%`, y2: `${s.y2}%`,
-                  stroke: `rgba(217, 70, 239, ${s.op})`, strokeWidth: 1 + Math.abs(Math.sin(i)),
-                  style: { filter: 'drop-shadow(0 0 4px rgba(217,70,239,0.5))' }
-                })),
-                e('polygon', { points: "20%,30% 25%,25% 22%,40%", fill: "rgba(217,70,239,0.1)", stroke: "rgba(217,70,239,0.2)" }),
-                e('polygon', { points: "70%,60% 80%,55% 75%,75%", fill: "rgba(217,70,239,0.1)", stroke: "rgba(217,70,239,0.2)" }),
-                e('polygon', { points: "40%,80% 50%,70% 45%,90%", fill: "rgba(217,70,239,0.1)", stroke: "rgba(217,70,239,0.2)" })
-              ),
-
-              // 裡世界法陣與廢土背景
-              e('g', { className: `transition-opacity duration-700 ${activeLayer === 'inner' ? 'opacity-100' : 'opacity-0'}` },
-                e('circle', { cx: "50%", cy: "50%", r: "48%", fill: "none", stroke: "rgba(239, 68, 68, 0.03)", strokeWidth: "30" }),
-                bgRunes.map((r, i) => e('circle', {
-                  key: `r-${i}`, cx: "50%", cy: "50%", r: `${r.r}%`, fill: "none",
-                  stroke: `rgba(239, 68, 68, ${r.op})`, strokeWidth: "2", strokeDasharray: r.dash
-                })),
-                e('path', { d: "M 0 80 Q 20 70 40 85 T 80 75 T 100 85 L 100 100 L 0 100 Z", fill: "rgba(127, 29, 29, 0.2)" }),
-                e('path', { d: "M 0 90 Q 30 80 60 95 T 100 85 L 100 100 L 0 100 Z", fill: "rgba(69, 10, 10, 0.4)" })
-              )
-            ),
-
-            // 河流與漸層光影
-            (activeLayer === 'surface' || activeLayer === 'boundary') ?
-              e('div', { className: `absolute left-0 right-0 h-16 top-[60%] -translate-y-1/2 opacity-30 ${activeLayer === 'surface' ? 'bg-cyan-500' : 'bg-fuchsia-800 blur-lg'} transform -skew-y-3 transition-colors duration-700 pointer-events-none z-0` }) : null,
-            activeLayer === 'inner' ?
-              e('div', { className: "absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-red-900/40 to-transparent pointer-events-none z-0" }) : null,
-
-            // 圖層提示標題
-            e('div', { className: "absolute top-4 left-4 pointer-events-none z-30" },
-              e('h2', { className: `text-2xl font-bold ${layerInfo.color} opacity-90 uppercase tracking-widest flex items-center gap-2` },
-                e(Icon, { name: "MapPin", size: 24 }),
-                layerInfo.title
-              ),
-              e('p', { className: "text-gray-400 text-sm mt-1" }, layerInfo.subtitle)
-            ),
-
-            // 地圖上的互動節點
-            layerInfo.locations.map(loc => {
-              const isSelected = selectedLoc?.id === loc.id;
-              return e('button', {
-                key: loc.id,
-                onClick: () => setSelectedLoc(loc),
-                className: "absolute transform -translate-x-1/2 -translate-y-1/2 group z-20",
-                style: { left: `${loc.x}%`, top: `${loc.y}%` }
-              },
-                e('div', { className: "relative flex flex-col items-center" },
-                  e('div', { className: `w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isSelected 
-                      ? `bg-gray-900 border-2 ${layerInfo.border} ${layerInfo.color} shadow-[0_0_25px_rgba(currentColor)] scale-110` 
-                      : `bg-gray-800/80 text-gray-400 border border-gray-600 hover:${layerInfo.color} hover:border-current hover:scale-105`
-                  }`},
-                    e(Icon, { name: loc.icon, size: 24 })
-                  ),
-                  e('div', { className: `mt-3 px-3 py-1.5 bg-black/90 backdrop-blur-md rounded border ${isSelected ? layerInfo.border + ' ' + layerInfo.color : 'border-gray-700 text-gray-300'} whitespace-nowrap text-sm font-bold tracking-wide transition-colors shadow-lg` },
-                    loc.name
-                  ),
-                  isSelected ? e('div', { className: `absolute inset-0 rounded-full border-2 ${layerInfo.border} animate-ping opacity-75 pointer-events-none` }) : null
-                )
-              );
-            })
-          ),
-
-          // 右側資訊面板
-          e('div', { className: `w-full lg:w-1/3 bg-black/50 rounded-2xl border ${layerInfo.border} p-6 flex flex-col relative overflow-hidden backdrop-blur-md shadow-xl transition-all duration-500` },
-            e('div', { className: `absolute -top-20 -right-20 w-72 h-72 rounded-full ${layerInfo.color} opacity-10 blur-3xl` }),
-            
-            selectedLoc ? e('div', { className: "relative z-10 flex-grow flex flex-col" },
-              e('div', { className: "flex items-center gap-3 mb-1" },
-                e(Icon, { name: selectedLoc.icon, size: 32, className: layerInfo.color }),
-                e('h3', { className: "text-3xl font-bold text-white tracking-wide" }, selectedLoc.name)
-              ),
-              e('h4', { className: `text-lg font-medium ${layerInfo.color} mb-6 opacity-90 tracking-wide` }, selectedLoc.sub),
-              
-              e('div', { className: "mb-6 bg-black/40 p-4 rounded-xl border border-gray-800/50" },
-                e('p', { className: "text-gray-300 leading-relaxed text-base text-justify" }, selectedLoc.desc)
-              ),
-
-              selectedLoc.places.length > 0 ? e('div', { className: "mt-auto" },
-                e('h5', { className: "text-sm uppercase tracking-widest text-gray-400 mb-3 font-semibold border-b border-gray-800 pb-2 flex items-center gap-2" },
-                  e(Icon, { name: "MapPin", size: 16 }), "區域內重要節點"
-                ),
-                e('ul', { className: "grid grid-cols-1 gap-2.5" },
-                  selectedLoc.places.map((place, idx) => e('li', {
-                    key: idx,
-                    className: `bg-gray-900/60 border border-gray-700/50 rounded-lg p-3 flex items-center gap-3 text-gray-200 hover:${layerInfo.border} hover:bg-black/80 transition-all cursor-default shadow-sm`
-                  },
-                    e('div', { className: `w-2 h-2 rounded-full ${layerInfo.theme.replace('bg-', 'bg-').replace('-900', '-400').replace('-950', '-400')}`, style: { boxShadow: '0 0 8px currentColor' } }),
-                    e('span', { className: "font-medium tracking-wide" }, place)
-                  ))
-                )
-              ) : null
-            ) : e('div', { className: "flex-grow flex items-center justify-center text-gray-500" }, "請選擇地圖上的節點以查看詳情")
-          )
-        )
-      );
+      const runes = ['<circle class="ring" cx="50" cy="50" r="48" fill="none" stroke="rgba(248,113,113,0.04)" stroke-width="6"></circle>'];
+      for (let i = 0; i < 6; i++) {
+        const r = 10 + i * 14;
+        const op = 0.05 + (0.05 * (6 - i));
+        const dashA = 5 + i * 4;
+        const dashB = 10 + i * 2;
+        runes.push(`<circle class="rune" cx="50" cy="50" r="${r}" fill="none" stroke="rgba(248,113,113,${op.toFixed(3)})" stroke-width="0.28" stroke-dasharray="${dashA} ${dashB}"></circle>`);
+      }
+      runes.push('<path d="M0 80 Q20 70 40 85 T80 75 T100 85 L100 100 L0 100 Z" fill="rgba(127,29,29,0.18)"></path>');
+      runes.push('<path d="M0 90 Q30 80 60 95 T100 85 L100 100 L0 100 Z" fill="rgba(69,10,10,0.38)"></path>');
+      innerRunes.innerHTML = runes.join('');
     }
 
-    // 啟動 React 應用
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(e(DuskCityMap));
+    function getLocation(layer, id) {
+      return mapData[layer].locations.find(loc => loc.id === id) || mapData[layer].locations[0];
+    }
+
+    function renderNodes() {
+      const layerInfo = mapData[activeLayer];
+      const selectedId = selectedByLayer[activeLayer];
+      nodeLayer.innerHTML = layerInfo.locations.map(loc => {
+        const active = loc.id === selectedId;
+        return `
+          <button class="node ${active ? 'active' : ''}" style="left:${loc.x}%; top:${loc.y}%" data-id="${loc.id}" aria-label="${loc.name}">
+            <span class="node-marker">
+              ${iconSVG[loc.icon] || iconSVG.pin}
+              ${active ? '<span class="pulse"></span>' : ''}
+            </span>
+            <span class="node-label">${loc.name}</span>
+          </button>
+        `;
+      }).join('');
+
+      nodeLayer.querySelectorAll('.node').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedByLayer[activeLayer] = btn.dataset.id;
+          render();
+        });
+      });
+    }
+
+    function renderDetails() {
+      const loc = getLocation(activeLayer, selectedByLayer[activeLayer]);
+      details.innerHTML = `
+        <div class="details-content">
+          <div class="detail-head">
+            <div class="detail-icon">${iconSVG[loc.icon] || iconSVG.pin}</div>
+            <div>
+              <h2 class="detail-title">${loc.name}</h2>
+              <div class="detail-sub">${loc.sub}</div>
+            </div>
+          </div>
+          <div class="detail-desc">${loc.desc}</div>
+          <div class="detail-section-title">${iconSVG.pin}<span>區域內重要節點</span></div>
+          <div class="places">
+            ${loc.places.map(place => `
+              <div class="place">
+                <span class="place-dot"></span>
+                <span>${place}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="footer-note">這份頁面為單檔 HTML，可直接作為 GitHub Pages 的 <code>index.html</code> 使用。</div>
+        </div>
+      `;
+    }
+
+    function renderHeader() {
+      const layerInfo = mapData[activeLayer];
+      mapTitle.innerHTML = `${iconSVG.pin}<span>${layerInfo.title}</span>`;
+      mapSubtitle.textContent = layerInfo.subtitle;
+    }
+
+    function renderTabs() {
+      tabs.forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.layer === activeLayer);
+      });
+    }
+
+    function renderBodyClass() {
+      document.body.classList.remove(...layerOrder);
+      document.body.classList.add(activeLayer);
+    }
+
+    function render() {
+      renderBodyClass();
+      renderTabs();
+      renderHeader();
+      renderNodes();
+      renderDetails();
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        activeLayer = tab.dataset.layer;
+        render();
+      });
+    });
+
+    buildBackgrounds();
+    render();
   </script>
 </body>
 </html>
+
