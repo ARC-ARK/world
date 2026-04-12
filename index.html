@@ -1,1238 +1,544 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
-  <title>慾郁 | 沉浸式世界入口</title>
+  <title>慾郁 | Discord 沉浸式世界入口</title>
+  
+  <!-- 引入 Google Fonts 以提升繁體中文排版質感 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
+  
+  <!-- 引入 Tailwind CSS 以進行現代化排版 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+            serif: ['"Noto Serif TC"', 'serif'],
+            mono: ['"SFMono-Regular"', 'Consolas', 'monospace'],
+          },
+          colors: {
+            theme: {
+              bg: '#05050a',
+              panel: 'rgba(18, 21, 34, 0.4)',
+              violet: '#b9a9ff',
+              rose: '#ffafcf',
+              blue: '#76b8ff',
+            }
+          },
+          backgroundImage: {
+            'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            'noise': 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22 opacity=%220.05%22/%3E%3C/svg%3E")',
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    :root {
-      --bg: #06070d;
-      --bg-elevated: rgba(11, 14, 24, 0.86);
-      --bg-soft: rgba(18, 22, 36, 0.76);
-      --line: rgba(255, 255, 255, 0.12);
-      --line-strong: rgba(255, 255, 255, 0.2);
-      --text: #f6f3ff;
-      --muted: rgba(246, 243, 255, 0.72);
-      --muted-soft: rgba(246, 243, 255, 0.48);
-      --violet: #c6b7ff;
-      --rose: #ffb6d6;
-      --blue: #8cc7ff;
-      --glow: rgba(166, 130, 255, 0.34);
-      --shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
-      --radius-xl: 34px;
-      --radius-lg: 24px;
-      --radius-md: 18px;
-      --site-width: min(1240px, calc(100vw - 40px));
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    /* 客製化樣式與動畫 */
     body {
-      margin: 0;
-      color: var(--text);
-      font-family: "Noto Sans TC", sans-serif;
-      background:
-        radial-gradient(circle at 15% 20%, rgba(110, 88, 207, 0.26), transparent 28%),
-        radial-gradient(circle at 84% 16%, rgba(255, 154, 201, 0.18), transparent 24%),
-        radial-gradient(circle at 70% 78%, rgba(83, 130, 255, 0.16), transparent 22%),
-        linear-gradient(180deg, #090b12 0%, #06070d 45%, #070913 100%);
-      overflow-x: hidden;
+      background-color: theme('colors.theme.bg');
+      color: #e2e8f0;
     }
 
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: -1;
+    .glass-panel {
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }
 
-    body::before {
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 22%, transparent 78%, rgba(255,255,255,0.03)),
-        radial-gradient(circle at center, transparent 48%, rgba(0, 0, 0, 0.34) 100%);
-    }
-
-    body::after {
-      opacity: 0.1;
-      background-image:
-        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.72) 0.8px, transparent 0);
-      background-size: 22px 22px;
-      mix-blend-mode: screen;
-    }
-
-    img {
-      display: block;
-      width: 100%;
-      max-width: 100%;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    .page-shell {
-      width: var(--site-width);
-      margin: 0 auto;
-      padding-bottom: 40px;
-    }
-
-    .site-header {
-      position: sticky;
-      top: 16px;
-      z-index: 20;
-      margin: 18px auto 0;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(8, 10, 18, 0.72);
-      backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
-    }
-
-    .brand-lockup {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-width: 0;
-    }
-
-    .brand-mark {
-      width: 42px;
-      aspect-ratio: 1;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background:
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4), transparent 30%),
-        radial-gradient(circle at 50% 50%, rgba(178, 140, 255, 0.32), transparent 58%),
-        linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-      position: relative;
-    }
-
-    .brand-mark::before,
-    .brand-mark::after {
-      content: "";
-      position: absolute;
-      inset: 9px;
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 999px;
-    }
-
-    .brand-mark::after {
-      inset: 16px 10px;
-      border-color: rgba(255, 182, 214, 0.42);
-    }
-
-    .brand-copy p,
-    .brand-copy span,
-    .eyebrow,
-    .tiny-label,
-    .card-label {
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    .brand-copy p {
-      margin: 0;
-      font-size: 0.8rem;
-      color: var(--muted-soft);
-    }
-
-    .brand-copy span {
-      display: block;
-      margin-top: 2px;
-      font-family: "Noto Serif TC", serif;
-      font-size: 1.1rem;
-    }
-
-    .site-nav {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      flex: 1;
-      flex-wrap: wrap;
-    }
-
-    .site-nav a,
-    .button {
-      padding: 11px 16px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(255,255,255,0.03);
-      transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
-    }
-
-    .site-nav a {
-      font-size: 0.88rem;
-      color: var(--muted);
-    }
-
-    .site-nav a:hover,
-    .button:hover {
-      transform: translateY(-2px);
-      border-color: rgba(255,255,255,0.28);
-      background: rgba(255,255,255,0.08);
-    }
-
-    .button--primary {
-      background: linear-gradient(135deg, rgba(196, 178, 255, 0.24), rgba(255, 182, 214, 0.14));
-      border-color: rgba(210, 192, 255, 0.34);
-      box-shadow: 0 10px 24px rgba(126, 89, 236, 0.18);
-    }
-
-    .section {
-      padding: 74px 0;
-    }
-
-    .hero {
-      min-height: calc(100vh - 120px);
-      display: grid;
-      grid-template-columns: 1.02fr 0.98fr;
-      align-items: center;
-      gap: 34px;
-      padding-top: 46px;
-    }
-
-    .eyebrow,
-    .tiny-label,
-    .card-label {
-      margin: 0 0 12px;
-      font-size: 0.74rem;
-      color: var(--muted-soft);
-    }
-
-    .hero-title,
-    .section-title,
-    .card-title,
-    .small-title {
-      margin: 0;
-      font-family: "Noto Serif TC", serif;
-      font-weight: 700;
-      line-height: 0.95;
-    }
-
-    .hero-title {
-      font-size: clamp(4rem, 10vw, 8rem);
-      letter-spacing: -0.04em;
-      text-wrap: balance;
-    }
-
-    .hero-title span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.44em;
-      letter-spacing: 0.04em;
-      margin-top: 18px;
-    }
-
-    .hero-lead,
-    .panel-text,
-    .index-text {
-      color: var(--muted);
-      line-height: 1.9;
-    }
-
-    .hero-lead {
-      max-width: 36rem;
-      margin: 26px 0 0;
-      font-size: 1.03rem;
-    }
-
-    .keywords,
-    .hero-actions,
-    .stats-row,
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .keywords { margin-top: 24px; }
-
-    .keyword {
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-
-    .hero-actions { margin-top: 28px; }
-
-    .image-stage,
-    .banner-image,
-    .raid-cover,
-    .join-portrait,
-    .poster-card,
-    .gallery-item {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-      box-shadow: var(--shadow);
-    }
-
-    .image-stage {
-      min-height: 720px;
-      border-radius: 38px 38px 110px 38px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
-        radial-gradient(circle at 40% 24%, rgba(201, 171, 255, 0.24), transparent 34%),
-        radial-gradient(circle at 60% 75%, rgba(255, 170, 212, 0.18), transparent 26%);
-    }
-
-    .image-stage img,
-    .banner-image img,
-    .raid-cover img,
-    .join-portrait img,
-    .poster-card img,
-    .gallery-figure img {
-      height: 100%;
-      object-fit: cover;
-      filter: saturate(1.02) contrast(1.05);
-    }
-
-    .image-stage img { object-position: center top; }
-
-    .image-stage::before,
-    .image-stage::after,
-    .raid-cover::before,
-    .join-portrait::before,
-    .poster-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    .image-stage::before,
-    .join-portrait::before {
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.18), transparent 28%),
-        linear-gradient(180deg, rgba(6, 7, 13, 0.02), rgba(6, 7, 13, 0.2) 38%, rgba(6,7,13,0.66) 100%);
-    }
-
-    .image-stage::after {
-      inset: auto 18px 18px auto;
-      width: 150px;
-      height: 150px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      box-shadow: 0 0 80px rgba(188, 162, 255, 0.16);
-    }
-
-    .floating-note {
-      position: absolute;
-      padding: 14px 16px;
-      max-width: 180px;
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 18px;
-      background: rgba(8, 10, 18, 0.62);
-      backdrop-filter: blur(18px);
-      box-shadow: 0 20px 38px rgba(0,0,0,0.32);
-    }
-
-    .floating-note--top { top: 28px; right: 22px; }
-    .floating-note--bottom { left: 22px; bottom: 26px; }
-
-    .floating-note p {
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 0.84rem;
-      line-height: 1.7;
-    }
-
-    .feature-grid,
-    .poster-grid,
-    .world-detail,
-    .world-panels,
-    .org-grid,
-    .index-grid,
-    .raid-metrics,
-    .join-layout,
-    .gallery-grid {
-      display: grid;
-      gap: 18px;
-    }
-
-    .feature-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .glass-card,
-    .panel,
-    .index-card {
-      padding: 24px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    .glass-card {
+      background: rgba(15, 17, 26, 0.6);
       backdrop-filter: blur(12px);
-      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    .card-title {
-      margin-top: 4px;
-      font-size: 1.9rem;
-      line-height: 1.15;
-    }
-
-    .small-title {
-      font-size: 1.45rem;
-      line-height: 1.15;
-    }
-
-    .panel-text,
-    .index-text { margin: 14px 0 0; }
-
-    .poster-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .poster-card {
-      min-height: 420px;
-      border-radius: 28px;
-      display: flex;
-      align-items: flex-end;
-    }
-
-    .poster-card::before {
-      background: linear-gradient(180deg, rgba(9, 11, 18, 0.02), rgba(9, 11, 18, 0.38) 48%, rgba(9, 11, 18, 0.92));
-    }
-
-    .poster-card--soft {
-      min-height: 420px;
-      background:
-        radial-gradient(circle at 50% 18%, rgba(200, 180, 255, 0.28), transparent 28%),
-        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
-        linear-gradient(145deg, #0e1120, #171a29);
-    }
-
-    .poster-copy {
-      position: relative;
-      z-index: 1;
-      padding: 28px;
-      display: grid;
-      gap: 12px;
-      align-content: end;
-    }
-
-    .poster-copy a {
-      color: var(--violet);
-      font-size: 0.92rem;
-    }
-
-    .section-heading {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin-bottom: 26px;
-    }
-
-    .section-title {
-      font-size: clamp(2.6rem, 6vw, 5rem);
-      letter-spacing: -0.04em;
-      text-wrap: balance;
-    }
-
-    .world-layout,
-    .raid-layout {
-      position: relative;
-    }
-
-    .world-intro,
-    .raid-hero,
-    .join-layout {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 20px;
-      align-items: stretch;
-    }
-
-    .banner-image {
-      min-height: 360px;
-      border-radius: var(--radius-xl);
-    }
-
-    .banner-image img { object-position: center 28%; }
-
-    .banner-caption,
-    .raid-caption {
-      position: absolute;
-      left: 18px;
-      bottom: 16px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(8, 10, 18, 0.52);
-      backdrop-filter: blur(14px);
-    }
-
-    .world-detail { grid-template-columns: 1.02fr 0.98fr; margin-top: 18px; }
-
-    .map-panel {
-      padding: 20px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-xl);
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-      box-shadow: var(--shadow);
-    }
-
-    .map-stage {
-      position: relative;
-      min-height: 420px;
-      border-radius: 26px;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 22% 20%, rgba(140, 198, 255, 0.12), transparent 18%),
-        radial-gradient(circle at 76% 26%, rgba(198, 182, 255, 0.15), transparent 20%),
-        radial-gradient(circle at 54% 68%, rgba(255, 183, 214, 0.16), transparent 18%),
-        linear-gradient(145deg, rgba(14, 17, 29, 0.96), rgba(9, 11, 17, 0.9));
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .map-stage::before,
-    .map-stage::after {
-      content: "";
-      position: absolute;
-      inset: 12% 10%;
-      border-radius: 54% 46% 58% 42% / 36% 48% 52% 64%;
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
-    }
-
-    .map-stage::after {
-      inset: 24% 28%;
-      border-radius: 62% 38% 34% 66% / 46% 56% 44% 54%;
-    }
-
-    .hotspot {
-      position: absolute;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text);
-      font-size: 0.8rem;
-    }
-
-    .hotspot__dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.5);
-      box-shadow: 0 0 0 10px rgba(255,255,255,0.04), 0 0 22px rgba(173, 146, 255, 0.26);
-      background: currentColor;
-    }
-
-    .hotspot--mainland { top: 24%; left: 20%; color: var(--blue); }
-    .hotspot--threshold { top: 49%; left: 42%; color: var(--violet); }
-    .hotspot--inner { top: 30%; right: 18%; color: var(--rose); }
-    .hotspot--isle { bottom: 18%; right: 28%; color: #f4d4a3; }
-
-    .legend {
-      list-style: none;
-      margin: 18px 0 0;
-      padding: 0;
-      color: var(--muted);
-      font-size: 0.86rem;
-    }
-
-    .legend li {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .legend-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-    }
-
-    .legend-dot--blue { background: var(--blue); }
-    .legend-dot--violet { background: var(--violet); }
-    .legend-dot--rose { background: var(--rose); }
-
-    .world-panels,
-    .org-grid,
-    .raid-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; }
-
-    .world-panels { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .panel--wide { grid-column: span 2; }
-
-    .index-grid { grid-template-columns: 1.08fr 0.92fr; margin-top: 18px; }
-
-    .index-chip-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 16px;
-    }
-
-    .index-chip-grid--compact { grid-template-columns: 1fr; }
-
-    .index-card {
-      padding: 18px;
-      min-height: 100%;
-      background: rgba(255,255,255,0.03);
-    }
-
-    .gallery-grid {
-      grid-template-columns: 1.2fr 0.8fr 0.8fr;
-      grid-auto-rows: 230px;
-      margin-top: 18px;
-    }
-
-    .gallery-item,
-    .gallery-figure { height: 100%; }
-
-    .gallery-item {
-      border-radius: 26px;
-      padding: 10px;
-      background: rgba(255,255,255,0.04);
-      transition: transform 180ms ease, border-color 180ms ease;
-    }
-
-    .gallery-item:hover {
+    
+    .glass-card:hover {
+      background: rgba(25, 28, 43, 0.7);
+      border-color: rgba(185, 169, 255, 0.3);
       transform: translateY(-4px);
-      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 20px 40px -10px rgba(185, 169, 255, 0.15);
     }
 
-    .gallery-item--large { grid-row: span 2; }
-    .gallery-item--wide { grid-column: span 2; }
-
-    .gallery-figure {
-      margin: 0;
-      overflow: hidden;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.04);
+    .text-glow {
+      text-shadow: 0 0 30px rgba(185, 169, 255, 0.5);
     }
 
-    .gallery-figure img {
-      object-fit: cover;
-      height: 100%;
+    .ambient-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.4;
+      animation: float 20s infinite ease-in-out alternate;
     }
 
-    .gallery-label {
-      margin: 10px 8px 0;
-      color: var(--muted-soft);
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(30px, -50px) scale(1.1); }
+      100% { transform: translate(-20px, 20px) scale(0.9); }
     }
 
-    .raid-cover {
-      min-height: 540px;
-      border-radius: 42px;
+    /* 隱藏捲軸但保留功能 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #05050a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2d3748;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4a5568;
     }
 
-    .raid-cover img { object-position: center 24%; }
-
-    .raid-cover::before {
-      background:
-        linear-gradient(180deg, rgba(10,12,20,0.08), rgba(10,12,20,0.32) 40%, rgba(10,12,20,0.88)),
-        linear-gradient(135deg, rgba(255,255,255,0.16), transparent 18%);
+    .grid-bg {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     }
 
-    .raid-ring {
-      position: absolute;
-      top: 11%;
-      right: 9%;
-      width: 156px;
-      height: 156px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      box-shadow: 0 0 0 18px rgba(255,255,255,0.03), 0 0 80px rgba(132, 153, 255, 0.14);
-    }
-
-    .raid-line {
-      position: absolute;
-      left: 22px;
-      right: 22px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    }
-
-    .raid-line--top { top: 22px; }
-    .raid-line--bottom { bottom: 54px; }
-
-    .raid-metrics { margin-top: 18px; }
-
-    .join-layout { margin-top: 16px; }
-
-    .join-copy {
-      display: grid;
-      gap: 20px;
-      align-content: center;
-    }
-
-    .join-portrait {
-      min-height: 620px;
-      border-radius: 38px 110px 38px 38px;
-    }
-
-    .join-portrait img { object-position: center 18%; }
-
-    .stats-row { margin-top: 8px; }
-
-    .stat-card {
-      min-width: 140px;
-      padding: 16px 18px;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: rgba(255,255,255,0.04);
-    }
-
-    .stat-card strong {
-      display: block;
-      font-family: "Noto Serif TC", serif;
-      font-size: 1.7rem;
-    }
-
-    .footer {
-      padding: 32px 0 50px;
-      color: var(--muted-soft);
-      font-size: 0.88rem;
-    }
-
-    .footer-inner {
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      padding: 22px 0 0;
-      border-top: 1px solid var(--line);
-      flex-wrap: wrap;
-    }
-
-    @media (max-width: 1180px) {
-      .hero,
-      .world-intro,
-      .world-detail,
-      .raid-hero,
-      .join-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .feature-grid,
-      .poster-grid,
-      .world-panels,
-      .org-grid,
-      .raid-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .panel--wide,
-      .gallery-item--wide { grid-column: auto; }
-      .index-grid,
-      .gallery-grid { grid-template-columns: 1fr; }
-      .gallery-grid { grid-auto-rows: 250px; }
-      .gallery-item--large { grid-row: auto; }
-      .image-stage,
-      .join-portrait { min-height: 600px; }
-      .raid-cover { min-height: 500px; }
-    }
-
-    @media (max-width: 860px) {
-      .page-shell { width: min(100vw - 24px, 1240px); }
-      .site-header {
-        top: 10px;
-        border-radius: 30px;
-        padding: 16px;
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .brand-lockup,
-      .site-nav { justify-content: center; }
-      .section { padding: 58px 0; }
-      .hero { min-height: auto; padding-top: 26px; }
-      .feature-grid,
-      .poster-grid,
-      .world-panels,
-      .org-grid,
-      .raid-metrics,
-      .index-chip-grid { grid-template-columns: 1fr; }
-      .image-stage,
-      .raid-cover,
-      .join-portrait { min-height: 520px; }
-      .floating-note { max-width: 150px; }
-    }
-
-    @media (max-width: 560px) {
-      .hero-title { font-size: clamp(3rem, 17vw, 4.2rem); }
-      .section-title { font-size: clamp(2.1rem, 11vw, 3rem); }
-      .site-nav a,
-      .button { width: 100%; text-align: center; }
-      .hero-actions,
-      .stats-row { display: grid; grid-template-columns: 1fr; }
-      .keywords { gap: 10px; }
-      .image-stage,
-      .raid-cover,
-      .join-portrait,
-      .poster-card { min-height: 430px; }
-      .floating-note {
-        left: 16px;
-        right: 16px;
-        max-width: none;
-      }
-      .floating-note--top { top: 16px; }
-      .floating-note--bottom { bottom: 16px; }
-      .map-stage { min-height: 320px; }
-      .glass-card,
-      .panel,
-      .index-card,
-      .poster-copy,
-      .map-panel { padding: 18px; }
+    /* 圖片載入失敗時的預設背景 */
+    img {
+      background-color: #1a1d2e;
     }
   </style>
 </head>
-<body>
-  <div class="page-shell">
-    <header class="site-header">
-      <div class="brand-lockup">
-        <div class="brand-mark" aria-hidden="true"></div>
-        <div class="brand-copy">
-          <p>Discord World Project</p>
-          <span>慾郁</span>
-        </div>
-      </div>
+<body class="relative min-h-screen overflow-x-hidden antialiased selection:bg-theme-violet selection:text-white">
 
-      <nav class="site-nav" aria-label="主要導覽">
-        <a href="#home">首頁</a>
-        <a href="#world">世界檔案</a>
-        <a href="#raid">副本活動</a>
-        <a href="#join">入界</a>
+  <!-- 環境光暈與雜訊紋理 -->
+  <div class="fixed inset-0 pointer-events-none z-0">
+    <div class="absolute inset-0 bg-noise opacity-30 mix-blend-overlay"></div>
+    <div class="ambient-orb bg-theme-violet w-[500px] h-[500px] -top-[200px] -left-[100px]"></div>
+    <div class="ambient-orb bg-theme-blue w-[400px] h-[400px] top-[40%] -right-[150px] animation-delay-2000"></div>
+    <div class="ambient-orb bg-theme-rose w-[600px] h-[600px] -bottom-[200px] left-[20%] animation-delay-4000 opacity-20"></div>
+  </div>
+
+  <!-- 導覽列 -->
+  <header class="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl">
+    <div class="glass-panel rounded-full px-6 py-3 flex items-center justify-between">
+      <a href="#home" class="flex items-center gap-3 group">
+        <span class="w-3 h-3 rounded-full bg-gradient-to-br from-white to-theme-violet shadow-[0_0_15px_rgba(185,169,255,0.6)] group-hover:shadow-[0_0_25px_rgba(185,169,255,0.9)] transition-shadow duration-300"></span>
+        <span class="font-serif text-xl tracking-wider text-white">慾郁</span>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-mono tracking-widest text-gray-300">
+        <a href="#home" class="hover:text-white transition-colors duration-300">首頁</a>
+        <a href="#world" class="hover:text-white transition-colors duration-300">世界檔案</a>
+        <a href="#raid" class="hover:text-white transition-colors duration-300">副本活動</a>
+        <a href="#join" class="hover:text-white transition-colors duration-300">入界</a>
       </nav>
 
-      <a class="button button--primary" href="https://discord.com" target="_blank" rel="noreferrer">加入伺服器</a>
-    </header>
-
-    <main>
-      <section class="section hero" id="home">
-        <div>
-          <p class="eyebrow">Immersive Roleplay / Discord Chronicle</p>
-          <h1 class="hero-title">慾郁<span>讓人先沉入氛圍，再自願走進規則。</span></h1>
-          <p class="hero-lead">這是一個以原創世界觀、長線劇情與角色關係為核心的沉浸式對戲伺服器。表世界、交界處與裡世界彼此牽連，秩序、欲望與權柄不斷穿透邊界，把每一名角色拉進更深的局勢。</p>
-
-          <div class="keywords">
-            <span class="keyword">原創世界觀</span>
-            <span class="keyword">長線劇情</span>
-            <span class="keyword">多陣營推進</span>
-            <span class="keyword">副本事件</span>
-          </div>
-
-          <div class="hero-actions">
-            <a class="button button--primary" href="#world">進入世界</a>
-            <a class="button" href="#raid">查看副本</a>
-          </div>
+      <a href="https://discord.gg/bbKvygGwKG" target="_blank" rel="noreferrer" class="relative group overflow-hidden rounded-full p-[1px]">
+        <span class="absolute inset-0 bg-gradient-to-r from-theme-violet via-theme-rose to-theme-blue opacity-70 group-hover:opacity-100 animate-[spin_3s_linear_infinite]"></span>
+        <div class="relative bg-gray-950/80 backdrop-blur-sm px-5 py-2 rounded-full flex items-center gap-2 transition-all group-hover:bg-gray-900/50">
+          <span class="text-xs font-mono tracking-widest text-white">加入伺服器</span>
         </div>
+      </a>
+    </div>
+  </header>
 
-        <figure class="image-stage">
-          <img src="網站文案、圖片、資料/圖片/photo (1).png" alt="角色主視覺" loading="eager">
-          <figcaption class="floating-note floating-note--top">
-            <p class="tiny-label">Archive / Lead Visual</p>
-            <p>夜色、玻璃反光與人物視線共同建立第一屏的情緒重心。</p>
-          </figcaption>
-          <figcaption class="floating-note floating-note--bottom">
-            <p class="tiny-label">Threshold / Signal</p>
-            <p>在秩序與失控之間，角色永遠得自己決定要站在哪一側。</p>
-          </figcaption>
-        </figure>
-      </section>
-
-      <section class="section">
-        <div class="feature-grid">
-          <article class="glass-card">
-            <p class="card-label">Atmosphere</p>
-            <h2 class="card-title">沉浸感不是背景，而是所有關係的起點。</h2>
-            <p class="panel-text">從版面、語氣到世界規則都圍繞同一種夜色壓力感，角色越深入，就越難保持旁觀者立場。</p>
-          </article>
-          <article class="glass-card">
-            <p class="card-label">Roleplay</p>
-            <h2 class="card-title">對戲不是零散片段，而是長線推進。</h2>
-            <p class="panel-text">每次互動都可能留下標記、承諾、背叛或陣營傾向，並在之後的劇情裡回頭影響角色。</p>
-          </article>
-          <article class="glass-card">
-            <p class="card-label">Progression</p>
-            <h2 class="card-title">世界會前進，角色也必須表態。</h2>
-            <p class="panel-text">權柄、覺醒、封鎖區與組織線同時運作，玩家能沿著自己的選擇長出完全不同的故事路徑。</p>
-          </article>
-          <article class="glass-card">
-            <p class="card-label">Community</p>
-            <h2 class="card-title">社群是場景的一部分，而不是場景之外。</h2>
-            <p class="panel-text">設定交流、任務合作、陣營對立與情感推進會在同一個伺服器裡慢慢疊起來。</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="poster-grid">
-          <article class="poster-card">
-            <img src="網站文案、圖片、資料/圖片/photo (18).png" alt="世界檔案視覺" loading="lazy">
-            <div class="poster-copy">
-              <p class="tiny-label">01 / Archive</p>
-              <h2 class="card-title">從世界的裂縫進入，先看見規則，再理解人。</h2>
-              <a href="#world">閱讀世界檔案</a>
-            </div>
-          </article>
-
-          <article class="poster-card">
-            <img src="網站文案、圖片、資料/圖片/photo (13).png" alt="機制與覺醒視覺" loading="lazy">
-            <div class="poster-copy">
-              <p class="tiny-label">02 / Mechanism</p>
-              <h2 class="card-title">種族、能力與秩序層級，決定你會以何種姿態活下來。</h2>
-              <a href="#world-codex">查看索引</a>
-            </div>
-          </article>
-
-          <article class="poster-card poster-card--soft">
-            <div class="poster-copy">
-              <p class="tiny-label">03 / Operation</p>
-              <h2 class="card-title">當封鎖副本開啟，角色再也無法只站在故事邊緣。</h2>
-              <p class="panel-text">事件不是額外加戲，而是推動整個世界節奏的壓力裝置。</p>
-              <a href="#raid">進入副本頁</a>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="section world-layout" id="world">
-        <div class="section-heading">
-          <p class="eyebrow">World Archive</p>
-          <h2 class="section-title">世界檔案與秩序索引</h2>
-        </div>
-
-        <div class="world-intro">
-          <article class="glass-card">
-            <p class="card-label">Main World / Overview</p>
-            <h3 class="small-title">這不是單一場景，而是一套會吞沒角色立場的三界結構。</h3>
-            <p class="panel-text">表世界維持秩序與教育信仰，交界處則堆積流亡者、覺醒者與被放逐的族群。裡世界讓慾望與血統意識變成顯性規則，而天使始終在更高的位置介入，改寫所有人對正當性的理解。</p>
-            <p class="panel-text">每一名角色不只在一個地圖上行動，而是在不同層級的秩序裡被迫選邊、求生、反抗或沉淪。這份世界觀的目的不是讓你閱讀完畢，而是讓你知道角色從一開始就站在壓力場裡。</p>
-          </article>
-
-          <figure class="banner-image">
-            <img src="網站文案、圖片、資料/圖片/photo (15).png" alt="世界檔案橫幅視覺" loading="lazy">
-            <figcaption class="banner-caption tiny-label">Archive Fragment / Threshold Resident</figcaption>
-          </figure>
-        </div>
-
-        <div class="world-detail">
-          <article class="map-panel">
-            <div class="map-stage">
-              <a href="#world-mainland" class="hotspot hotspot--mainland">
-                <span class="hotspot__dot"></span>
-                <span class="hotspot__label">表世界</span>
-              </a>
-              <a href="#world-threshold" class="hotspot hotspot--threshold">
-                <span class="hotspot__dot"></span>
-                <span class="hotspot__label">交界處</span>
-              </a>
-              <a href="#world-inner" class="hotspot hotspot--inner">
-                <span class="hotspot__dot"></span>
-                <span class="hotspot__label">裡世界</span>
-              </a>
-              <a href="#world-isle" class="hotspot hotspot--isle">
-                <span class="hotspot__dot"></span>
-                <span class="hotspot__label">神眷島</span>
-              </a>
-            </div>
-
-            <ul class="legend">
-              <li><span class="legend-dot legend-dot--blue"></span>穩定秩序地帶</li>
-              <li><span class="legend-dot legend-dot--violet"></span>覺醒與流亡熱區</li>
-              <li><span class="legend-dot legend-dot--rose"></span>欲望與權柄核心</li>
-            </ul>
-          </article>
-
-          <aside class="glass-card" id="world-codex">
-            <p class="card-label">Regulations / Codex</p>
-            <div class="glass-card" style="padding:16px; margin-top:4px;">
-              <h3 class="small-title" style="font-size:1.1rem;">天使與神之權柄</h3>
-              <p class="panel-text">天使並不屬於單一地理區域，而更像由人族集體信仰與秩序需求凝結出的高位存在。第四級以上的干涉，通常會被視為權柄本身的顯現。</p>
-            </div>
-            <div class="glass-card" style="padding:16px; margin-top:16px;">
-              <h3 class="small-title" style="font-size:1.1rem;">能力分級</h3>
-              <p class="panel-text">從微效級到戰略級，能力不只是戰力高低，而是角色被世界怎麼看待、允許介入到哪個層級的尺度。</p>
-            </div>
-            <div class="glass-card" style="padding:16px; margin-top:16px;">
-              <h3 class="small-title" style="font-size:1.1rem;">交界處的現實</h3>
-              <p class="panel-text">流亡、走私、異族聚居與非法覺醒都在這裡發生。它不是過渡地，而是最能看見制度縫隙的地方。</p>
-            </div>
-            <div class="glass-card" style="padding:16px; margin-top:16px;">
-              <h3 class="small-title" style="font-size:1.1rem;">封鎖副本邏輯</h3>
-              <p class="panel-text">副本不是獨立遊樂場，而是會把角色行為回流到世界線的壓力節點。你帶出的情報、標記與關係都會留下。</p>
-            </div>
-          </aside>
-        </div>
+  <main class="relative z-10 container mx-auto px-6 pt-32 pb-24">
+    
+    <!-- 英雄區塊 (Hero) -->
+    <section id="home" class="min-h-[85vh] flex flex-col justify-center gap-16 pt-12 lg:pt-0">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         
-        <div class="world-panels">
-          <article class="panel panel--wide" id="world-mainland">
-            <p class="card-label">Main World</p>
-            <h3 class="small-title">表世界</h3>
-            <p class="panel-text">秩序、教育與信仰組成了近乎密封的文明。這裡的人族大多沒有顯性異能，卻持續為天使提供祈禱與力量來源。</p>
-          </article>
-          <article class="panel panel--wide" id="world-threshold">
-            <p class="card-label">Threshold</p>
-            <h3 class="small-title">交界處</h3>
-            <p class="panel-text">兩界夾縫、走私通道、流亡者棲地，也是最多覺醒案例發生的位置。許多亞人與異常者都被迫在這裡學會活下去。</p>
-          </article>
-          <article class="panel" id="world-inner">
-            <p class="card-label">Inner World</p>
-            <h3 class="small-title">裡世界</h3>
-            <p class="panel-text">慾望與血統意識被放大成常態，規則往往由力量而非正義書寫。</p>
-          </article>
-          <article class="panel" id="world-isle">
-            <p class="card-label">Closed Zone</p>
-            <h3 class="small-title">神眷島</h3>
-            <p class="panel-text">不存在於海圖上的封閉孤島，以王權、祭儀與階層構成鎖死結構。</p>
-          </article>
+        <!-- 左側文案 -->
+        <div class="flex flex-col gap-8">
+          <div>
+            <p class="font-mono text-xs tracking-[0.2em] text-theme-violet mb-4">IMMERSIVE DISCORD WORLD</p>
+            <h1 class="font-serif text-5xl lg:text-7xl leading-tight text-white text-glow">
+              秩序把信仰磨成權柄，<br>慾望在夜裡繼續擴散。
+            </h1>
+          </div>
+          
+          <p class="text-gray-400 leading-relaxed text-lg lg:text-xl font-light">
+            《慾郁》是一個以原創世界觀為核心的 Discord 沉浸式文愛／對戲企劃。表世界靠祈禱與行政維持秩序，交界處吞沒流亡者與覺醒者，裡世界則讓慾望、權力與種族階層野性擴張。你將以角色身分進場，在組織、法典、副本與長線劇情中留下自己的痕跡。
+          </p>
+
+          <ul class="flex flex-wrap gap-3 font-mono text-xs tracking-wider text-gray-300" aria-label="World keywords">
+            <li class="px-4 py-2 rounded-full border border-gray-700/50 bg-gray-800/30">表世界秩序</li>
+            <li class="px-4 py-2 rounded-full border border-gray-700/50 bg-gray-800/30">交界處</li>
+            <li class="px-4 py-2 rounded-full border border-gray-700/50 bg-gray-800/30">裡世界</li>
+            <li class="px-4 py-2 rounded-full border border-gray-700/50 bg-gray-800/30">天使權柄</li>
+          </ul>
+
+          <div class="flex flex-wrap gap-4 mt-4">
+            <a href="#world" class="px-8 py-3 rounded-full bg-white text-black font-medium tracking-widest text-sm hover:bg-gray-200 transition-colors">進入世界檔案</a>
+            <a href="#raid" class="px-8 py-3 rounded-full border border-gray-600 text-white font-medium tracking-widest text-sm hover:bg-gray-800 transition-colors">查看副本活動</a>
+          </div>
         </div>
 
-        <div class="org-grid">
-          <article class="glass-card">
-            <p class="card-label">Institution / Closed Ward</p>
-            <h3 class="small-title">體罰天堂｜Abyss 療養院</h3>
-            <p class="panel-text">高度封閉的私立機構，專注於極端臨床管理、痛覺紀錄與行為矯正。登記之後，個體的意志與肉體都進入院方的完整支配範圍。</p>
+        <!-- 右側視覺 -->
+        <div class="relative w-full aspect-[4/5] lg:aspect-square group">
+          <div class="absolute inset-0 rounded-[2rem] overflow-hidden border border-gray-700/50 shadow-2xl">
+            <!-- 恢復為原始本地路徑 -->
+            <img src="網站文案、圖片、資料/圖片/photo (1).png" alt="慾郁首頁角色主視覺" class="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-1000">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            
+            <!-- 裝飾光環 -->
+            <div class="absolute top-10 left-10 w-40 h-40 border border-white/20 rounded-full"></div>
+            <div class="absolute -bottom-10 -right-10 w-60 h-60 border border-theme-violet/30 rounded-full"></div>
+            
+            <figcaption class="absolute bottom-6 left-8 font-mono text-xs tracking-[0.2em] text-gray-400">TWILIGHT / GLASS / DESIRE</figcaption>
+          </div>
+
+          <!-- 浮動卡片 1 -->
+          <article class="absolute -left-6 top-1/4 w-64 glass-card p-5 rounded-2xl hidden md:block">
+            <p class="font-mono text-[10px] tracking-widest text-theme-violet mb-2">MAIN WORLD</p>
+            <p class="text-sm text-gray-300 leading-relaxed">婚配、秩序與信仰被制度化，平靜外表下的壓抑逐漸失去出口。</p>
           </article>
-          <article class="glass-card">
-            <p class="card-label">Detention / Frontier</p>
-            <h3 class="small-title">典獄官署｜邊界站</h3>
-            <p class="panel-text">與外界幾乎斷絕的非公開關押設施，負責邊界治安、審訊與高壓搜查。時間感、身份感與個體尊嚴都會在這裡被逐步拆解。</p>
-          </article>
-          <article class="glass-card">
-            <p class="card-label">Authority / Strategic</p>
-            <h3 class="small-title">天使與神之權柄</h3>
-            <p class="panel-text">天使並不真正屬於任何一界，他們更像由人族集體信仰凝結出的高位存在。第四級以上的干涉幾乎都被視為權柄本身的顯現。</p>
+
+          <!-- 浮動卡片 2 -->
+          <article class="absolute -right-6 bottom-1/4 w-64 glass-card p-5 rounded-2xl hidden md:block">
+            <p class="font-mono text-[10px] tracking-widest text-theme-rose mb-2">ANGELIC SOURCE</p>
+            <p class="text-sm text-gray-300 leading-relaxed">人族日夜祈禱累積出的集體意志，持續餵養著天使作為高位存在的權柄。</p>
           </article>
         </div>
+      </div>
 
-        <div class="index-grid">
-          <article class="glass-card">
-            <p class="card-label">Races</p>
-            <div class="index-chip-grid">
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">人族</h3>
-                <p class="index-text">生於主世界，通常缺乏異能，但在交界處或異世界中有機會覺醒。</p>
-              </article>
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">魔族</h3>
-                <p class="index-text">活躍於裡世界，與慾望、混亂、誘惑與惡意密切相連。</p>
-              </article>
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">亞人</h3>
-                <p class="index-text">長期被制度性邊緣化，卻也是最能適應灰色地帶的族群之一。</p>
-              </article>
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">精靈</h3>
-                <p class="index-text">天生與魔力和自然高親和，強大、高傲、重視血統與榮耀。</p>
-              </article>
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">天使</h3>
-                <p class="index-text">不是單純種族，更像神性權柄的具現。</p>
-              </article>
-            </div>
-          </article>
+      <!-- 氛圍卡片群 -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        <article class="glass-card p-6 rounded-2xl">
+          <p class="font-mono text-[10px] tracking-widest text-gray-500 mb-3">Atmosphere</p>
+          <h2 class="font-serif text-xl text-white mb-3">夜景與裂縫共存</h2>
+          <p class="text-sm text-gray-400 leading-relaxed">城市、角色與世界壓力被疊在同一個畫面裡，先沉浸，再決定是否深入。</p>
+        </article>
+        <article class="glass-card p-6 rounded-2xl">
+          <p class="font-mono text-[10px] tracking-widest text-gray-500 mb-3">Roleplay</p>
+          <h2 class="font-serif text-xl text-white mb-3">長線對戲入口</h2>
+          <p class="text-sm text-gray-400 leading-relaxed">組織、陣營與副本會反過來改寫角色，而不只是被角色路過。</p>
+        </article>
+        <article class="glass-card p-6 rounded-2xl">
+          <p class="font-mono text-[10px] tracking-widest text-gray-500 mb-3">Progression</p>
+          <h2 class="font-serif text-xl text-white mb-3">法典與能力並行</h2>
+          <p class="text-sm text-gray-400 leading-relaxed">資源、階級、覺醒等級與事件風險構成穩定的長線骨架。</p>
+        </article>
+        <article class="glass-card p-6 rounded-2xl">
+          <p class="font-mono text-[10px] tracking-widest text-gray-500 mb-3">Community</p>
+          <h2 class="font-serif text-xl text-white mb-3">由世界驅動的社群</h2>
+          <p class="text-sm text-gray-400 leading-relaxed">每次結盟、潛伏、失控與回流，都會成為後續章節的一部分。</p>
+        </article>
+      </div>
+    </section>
 
-          <article class="glass-card">
-            <p class="card-label">Power Tiers</p>
-            <div class="index-chip-grid index-chip-grid--compact">
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">微效級</h3>
-                <p class="index-text">只在細節處留下痕跡，常被誤認為巧合。</p>
-              </article>
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">個人級</h3>
-                <p class="index-text">能穩定融入日常與職業，影響單一對象或小範圍現象。</p>
-              </article>
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">街區級</h3>
-                <p class="index-text">多數覺醒者的巔峰，足以壓制多名普通人。</p>
-              </article>
-              <article class="index-card">
-                <h3 class="small-title" style="font-size:1.2rem;">戰略級</h3>
-                <p class="index-text">通常只屬於天使，干涉尺度直指城市與集體記憶。</p>
-              </article>
-            </div>
-          </article>
+    <!-- 導流長條 -->
+    <section class="py-24 grid md:grid-cols-3 gap-6">
+      <article class="relative h-[400px] rounded-3xl overflow-hidden group cursor-pointer">
+        <img src="網站文案、圖片、資料/圖片/photo (18).png" alt="世界檔案" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#05050a] via-black/50 to-transparent"></div>
+        <div class="absolute inset-x-0 bottom-0 p-8 flex flex-col gap-3">
+          <p class="font-mono text-[10px] tracking-[0.2em] text-theme-violet">01 / Archive</p>
+          <h2 class="font-serif text-2xl text-white leading-tight">世界不是背景，而是角色被迫站位的地方。</h2>
+          <a href="#world" class="mt-2 text-sm text-white/80 hover:text-white flex items-center gap-2 group-hover:translate-x-2 transition-transform">查看世界檔案 <span>→</span></a>
         </div>
+      </article>
 
-        <div class="gallery-grid">
-          <article class="gallery-item gallery-item--large">
-            <figure class="gallery-figure">
-              <img src="網站文案、圖片、資料/圖片/photo (10).png" alt="Fragment 10" loading="lazy">
-            </figure>
-            <p class="gallery-label tiny-label">Fragment / 10</p>
-          </article>
-          <article class="gallery-item">
-            <figure class="gallery-figure">
-              <img src="網站文案、圖片、資料/圖片/photo (11).png" alt="Fragment 11" loading="lazy">
-            </figure>
-            <p class="gallery-label tiny-label">Fragment / 11</p>
-          </article>
-          <article class="gallery-item">
-            <figure class="gallery-figure">
-              <img src="網站文案、圖片、資料/圖片/photo (12).png" alt="Fragment 12" loading="lazy">
-            </figure>
-            <p class="gallery-label tiny-label">Fragment / 12</p>
-          </article>
-          <article class="gallery-item">
-            <figure class="gallery-figure">
-              <img src="網站文案、圖片、資料/圖片/photo (17).png" alt="Fragment 17" loading="lazy">
-            </figure>
-            <p class="gallery-label tiny-label">Fragment / 17</p>
-          </article>
-          <article class="gallery-item">
-            <figure class="gallery-figure">
-              <img src="網站文案、圖片、資料/圖片/photo (19).png" alt="Fragment 19" loading="lazy">
-            </figure>
-            <p class="gallery-label tiny-label">Fragment / 19</p>
-          </article>
-          <article class="gallery-item gallery-item--wide">
-            <figure class="gallery-figure">
-              <img src="網站文案、圖片、資料/圖片/photo (3).PNG" alt="Fragment 03" loading="lazy">
-            </figure>
-            <p class="gallery-label tiny-label">Fragment / 03</p>
-          </article>
+      <article class="relative h-[400px] rounded-3xl overflow-hidden group cursor-pointer">
+        <img src="網站文案、圖片、資料/圖片/photo (13).png" alt="法典機制" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#05050a] via-black/50 to-transparent"></div>
+        <div class="absolute inset-x-0 bottom-0 p-8 flex flex-col gap-3">
+          <p class="font-mono text-[10px] tracking-[0.2em] text-theme-blue">02 / Mechanism</p>
+          <h2 class="font-serif text-2xl text-white leading-tight">法典、階層、種族與能力一起構成玩法骨架。</h2>
+          <a href="#world-codex" class="mt-2 text-sm text-white/80 hover:text-white flex items-center gap-2 group-hover:translate-x-2 transition-transform">查看法典摘要 <span>→</span></a>
         </div>
-      </section>
+      </article>
 
-      <section class="section raid-layout" id="raid">
-        <div class="section-heading">
-          <p class="eyebrow">Raid / Event</p>
-          <h2 class="section-title">封鎖副本：神眷島</h2>
-        </div>
+      <article class="relative h-[400px] rounded-3xl overflow-hidden glass-card group cursor-pointer border-t border-white/10 flex flex-col justify-end p-8">
+        <div class="absolute -top-32 -right-32 w-64 h-64 bg-theme-rose/20 rounded-full blur-[60px] group-hover:bg-theme-rose/30 transition-colors"></div>
+        <p class="font-mono text-[10px] tracking-[0.2em] text-theme-rose mb-3">03 / Operation</p>
+        <h2 class="font-serif text-2xl text-white leading-tight mb-3">副本不是插曲，而是世界對角色的反向審判。</h2>
+        <p class="text-sm text-gray-400 leading-relaxed mb-6">封鎖、陣營、離島線索與同化壓力，會把單次事件拉成長線。</p>
+        <a href="#raid" class="text-sm text-white/80 hover:text-white flex items-center gap-2 group-hover:translate-x-2 transition-transform">前往神眷島 <span>→</span></a>
+      </article>
+    </section>
 
-        <div class="raid-hero">
-          <figure class="raid-cover">
-            <img src="網站文案、圖片、資料/圖片/photo (16).png" alt="神眷島副本主視覺" loading="lazy">
-            <span class="raid-ring" aria-hidden="true"></span>
-            <span class="raid-line raid-line--top" aria-hidden="true"></span>
-            <span class="raid-line raid-line--bottom" aria-hidden="true"></span>
-            <figcaption class="raid-caption tiny-label">Current Operation / Closed Isle</figcaption>
-          </figure>
+    <!-- 世界檔案 -->
+    <section id="world" class="py-24">
+      <div class="mb-16">
+        <p class="font-mono text-xs tracking-[0.2em] text-theme-blue mb-4">WORLD ARCHIVE</p>
+        <h2 class="font-serif text-4xl lg:text-5xl text-white">世界檔案與權柄索引</h2>
+      </div>
 
-          <article class="glass-card">
-            <p class="card-label">Danger Level / IV</p>
-            <h3 class="small-title" style="font-size:2.2rem;">海圖之外，只有被祭儀選中的人才能踏上岸線。</h3>
-            <p class="panel-text">神眷島是一座不存在於海圖上的封閉孤島。島內以王權、祭儀與階層構成三角結構，御柱與闢限漩渦會不定期把表世界、裡世界與交界處的來客拖進岸線。對外來者而言，這裡不是觀光地，而是一座會慢慢改寫立場、身份與離島意志的封鎖裝置。</p>
-            <div class="keywords" style="margin-top:16px;">
-              <span class="keyword">封閉孤島</span>
-              <span class="keyword">王權—祭儀—階層</span>
-              <span class="keyword">藥草與香氛控制</span>
-              <span class="keyword">離島線索稀缺</span>
-            </div>
-          </article>
-        </div>
+      <div class="grid lg:grid-cols-5 gap-8 mb-12 items-stretch">
+        <article class="lg:col-span-2 glass-card p-8 rounded-[2rem] flex flex-col justify-center">
+          <p class="font-mono text-[10px] tracking-[0.2em] text-gray-500 mb-4">MAIN WORLD / OVERVIEW</p>
+          <h3 class="font-serif text-3xl text-white mb-6">秩序穩定到近乎失去人性。</h3>
+          <div class="space-y-4 text-gray-400 leading-relaxed text-sm">
+            <p>主世界科技水平接近二十世紀末，全球已形成高度整併的秩序社會。就業、婚配、教育與信仰都被制度接管，表面上的穩定與繁榮，實際上建立在極強的規訓之上。</p>
+            <p>人們持續向神與天使祈禱，而這份集體意志也正是天使力量的重要來源。當角色長時間停留於交界處或接觸異世界時，這份被壓抑的可能性就有機會以覺醒的形式洩出。</p>
+          </div>
+        </article>
 
-        <div class="world-detail">
-          <article class="glass-card">
-            <p class="card-label">Participation Flow</p>
-            <ol style="margin:0; padding-left:22px; color:var(--muted); line-height:1.86;">
-              <li>外來者會在漩渦與岸線附近完成第一輪分流，角色需迅速決定偽裝、求援或直接潛伏。</li>
-              <li>島上存在王族、將、島民、祭儀系統與森林駐地，不同入口決定你先被誰看見。</li>
-              <li>想離島必須追查八領、禁足地與御柱等關鍵詞；想留下，則必須學會與島上權力共存。</li>
-              <li>事件結束後，副本帶出的關係、標記與立場會回流到主世界線，成為下一段劇情的壓力。</li>
-            </ol>
-          </article>
+        <figure class="lg:col-span-3 relative rounded-[2rem] overflow-hidden min-h-[300px]">
+          <img src="網站文案、圖片、資料/圖片/photo (15).png" alt="世界檔案" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent"></div>
+          <figcaption class="absolute bottom-6 left-8 font-mono text-[10px] tracking-[0.2em] text-white/60">ARCHIVE FRAGMENT / THRESHOLD RESIDENT</figcaption>
+        </figure>
+      </div>
 
-          <article class="glass-card">
-            <p class="card-label">Operation Board</p>
-            <div style="display:grid; gap:14px;">
-              <div>
-                <p class="tiny-label" style="margin:0 0 6px; color:var(--violet);">核心理念</p>
-                <p class="panel-text">反抗王權、尋找離島方式、拯救同伴或被迫同化。</p>
-              </div>
-              <div>
-                <p class="tiny-label" style="margin:0 0 6px; color:var(--blue);">推薦角色</p>
-                <p class="panel-text">潛伏者、談判型角色、陣營領袖、失序覺醒者。</p>
-              </div>
-              <div>
-                <p class="tiny-label" style="margin:0 0 6px; color:var(--rose);">主要場域</p>
-                <p class="panel-text">海岸線、森林庵、祭祀禁足地、王族居處、火山與嫡系派駐地。</p>
-              </div>
-              <div>
-                <p class="tiny-label" style="margin:0 0 6px; color:var(--muted-soft);">地圖邏輯</p>
-                <p class="panel-text">部落式島嶼、無現代電子產品、藥草配方與儀式知識掌握在少數人手中。</p>
-              </div>
-            </div>
-          </article>
-        </div>
+      <!-- 地圖與法典 -->
+      <div class="grid lg:grid-cols-3 gap-8 mb-12">
+        <article class="lg:col-span-2 relative min-h-[450px] rounded-[2rem] border border-gray-700/50 bg-[#0a0c16] overflow-hidden grid-bg flex flex-col">
+          <div class="relative flex-grow">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] aspect-square border border-white/5 rounded-full"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] aspect-square border border-dashed border-white/10 rounded-full animate-[spin_60s_linear_infinite]"></div>
+            
+            <a href="#world-mainland" class="absolute top-[30%] left-[25%] flex items-center gap-3 px-4 py-2 glass-card rounded-full hover:-translate-y-1 transition-transform z-10 group">
+              <span class="w-2.5 h-2.5 rounded-full bg-theme-blue shadow-[0_0_10px_#76b8ff]"></span>
+              <span class="text-sm text-white group-hover:text-theme-blue transition-colors">表世界</span>
+            </a>
+            <a href="#world-threshold" class="absolute top-[50%] left-[45%] flex items-center gap-3 px-4 py-2 glass-card rounded-full hover:-translate-y-1 transition-transform z-10 group">
+              <span class="w-2.5 h-2.5 rounded-full bg-theme-violet shadow-[0_0_10px_#b9a9ff] animate-pulse"></span>
+              <span class="text-sm text-white group-hover:text-theme-violet transition-colors">交界處</span>
+            </a>
+            <a href="#world-inner" class="absolute top-[25%] right-[20%] flex items-center gap-3 px-4 py-2 glass-card rounded-full hover:-translate-y-1 transition-transform z-10 group">
+              <span class="w-2.5 h-2.5 rounded-full bg-theme-rose shadow-[0_0_10px_#ffafcf]"></span>
+              <span class="text-sm text-white group-hover:text-theme-rose transition-colors">裡世界</span>
+            </a>
+            <a href="#world-isle" class="absolute bottom-[20%] right-[30%] flex items-center gap-3 px-4 py-2 glass-card rounded-full hover:-translate-y-1 transition-transform z-10 group">
+              <span class="w-2.5 h-2.5 rounded-full border-2 border-theme-rose"></span>
+              <span class="text-sm text-gray-400 group-hover:text-white transition-colors">神眷島</span>
+            </a>
+          </div>
+          <div class="p-6 bg-black/40 backdrop-blur-md border-t border-white/5">
+            <ul class="flex flex-wrap gap-6 font-mono text-[10px] tracking-widest text-gray-400">
+              <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-theme-blue"></span> 當前主檔案</li>
+              <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-theme-violet"></span> 長線可延伸區域</li>
+              <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full border border-theme-rose"></span> 事件封鎖空間</li>
+            </ul>
+          </div>
+        </article>
 
-        <div class="raid-metrics">
-          <article class="glass-card">
-            <p class="card-label">Story Hook</p>
-            <h3 class="small-title">劇情鉤子</h3>
-            <p class="panel-text">王權與嫡系派並非鐵板一塊。你可以臥底、策反、營救、合作，或讓角色逐步變成局中人。</p>
-          </article>
-          <article class="glass-card">
-            <p class="card-label">Reward</p>
-            <h3 class="small-title">事件獎勵</h3>
-            <p class="panel-text">副本可帶出陣營關係、角色稱號、地圖情報與關鍵道具，也能直接影響之後的組織線與世界線。</p>
-          </article>
-          <article class="glass-card">
-            <p class="card-label">Risk</p>
-            <h3 class="small-title">角色風險</h3>
-            <p class="panel-text">長期停留可能導致立場鬆動、意志被削弱，甚至被結界與儀式系統慢慢同化成島嶼的一部分。</p>
-          </article>
-        </div>
-      </section>
+        <aside class="glass-card p-6 rounded-[2rem] flex flex-col gap-4" id="world-codex">
+          <p class="font-mono text-[10px] tracking-[0.2em] text-white/50 mb-2">REGULATIONS / CODEX</p>
+          <div class="p-4 rounded-xl bg-white/5 border border-white/5 border-l-2 border-l-theme-blue hover:bg-white/10 transition-colors">
+            <h4 class="font-mono text-sm tracking-widest text-white mb-2">收入與秩序</h4>
+            <p class="text-xs text-gray-400 leading-relaxed">角色的常規收入可視為每月一千慾郁幣；活動、任務與事件則另外形成資源流。</p>
+          </div>
+          <div class="p-4 rounded-xl bg-white/5 border border-white/5 border-l-2 border-l-theme-violet hover:bg-white/10 transition-colors">
+            <h4 class="font-mono text-sm tracking-widest text-white mb-2">組織權限</h4>
+            <p class="text-xs text-gray-400 leading-relaxed">在兩大組織空間內，當值人員具有壓倒性的執行權限。職責本身，就是他們凌駕階層的憑證。</p>
+          </div>
+          <div class="p-4 rounded-xl bg-white/5 border border-white/5 border-l-2 border-l-theme-rose hover:bg-white/10 transition-colors">
+            <h4 class="font-mono text-sm tracking-widest text-white mb-2">高風險劇情保護</h4>
+            <p class="text-xs text-gray-400 leading-relaxed">涉及高度失控或不可抗劇情時，需遵守對應保護機制，不得將其當成破壞世界感的捷徑。</p>
+          </div>
+          <div class="p-4 rounded-xl bg-white/5 border border-white/5 border-l-2 border-l-gray-500 hover:bg-white/10 transition-colors">
+            <h4 class="font-mono text-sm tracking-widest text-white mb-2">能力分級限制</h4>
+            <p class="text-xs text-gray-400 leading-relaxed">除天使外，其餘種族通常止步於第三級。覺醒必須循序推進，無法任意跨越等級。</p>
+          </div>
+        </aside>
+      </div>
 
-      <section class="section" id="join">
-        <div class="section-heading">
-          <p class="eyebrow">Enter / Join</p>
-          <h2 class="section-title">如果你準備好了，就讓角色在這裡留下第一個決定。</h2>
-        </div>
+      <!-- 世界面板 -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <article class="lg:col-span-2 glass-card p-8 rounded-3xl relative overflow-hidden group">
+          <div class="absolute inset-0 bg-gradient-to-br from-theme-blue/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative z-10">
+            <p class="font-mono text-[10px] tracking-[0.2em] text-theme-blue mb-2">Main World</p>
+            <h3 class="font-serif text-2xl text-white mb-4">表世界</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">秩序、教育與信仰組成了近乎密封的文明。這裡的人族大多沒有顯性異能，卻持續為天使提供祈禱與力量來源。</p>
+          </div>
+        </article>
+        <article class="lg:col-span-2 glass-card p-8 rounded-3xl relative overflow-hidden group">
+          <div class="absolute inset-0 bg-gradient-to-br from-theme-violet/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative z-10">
+            <p class="font-mono text-[10px] tracking-[0.2em] text-theme-violet mb-2">Threshold</p>
+            <h3 class="font-serif text-2xl text-white mb-4">交界處</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">兩界夾縫、走私通道、流亡者棲地，也是最多覺醒案例發生的位置。許多亞人與異常者都被迫在這裡學會活下去。</p>
+          </div>
+        </article>
+        <article class="lg:col-span-2 glass-card p-8 rounded-3xl">
+          <p class="font-mono text-[10px] tracking-[0.2em] text-theme-rose mb-2">Inner World</p>
+          <h3 class="font-serif text-xl text-white mb-3">裡世界</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">慾望與血統意識被放大成常態，規則往往由力量而非正義書寫。</p>
+        </article>
+        <article class="lg:col-span-2 glass-card p-8 rounded-3xl border-theme-rose/30">
+          <p class="font-mono text-[10px] tracking-[0.2em] text-gray-500 mb-2">Closed Zone</p>
+          <h3 class="font-serif text-xl text-white mb-3">神眷島</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">不存在於海圖上的封閉孤島，以王權、祭儀與階層構成鎖死結構，是目前最具辨識度的副本空間。</p>
+        </article>
+      </div>
 
-        <div class="join-layout">
-          <div class="join-copy">
-            <article class="glass-card">
-              <p class="card-label">Entry Note</p>
-              <h3 class="small-title">這裡適合願意投入設定、情緒與長線互動的人。</h3>
-              <p class="panel-text">你不需要一開始就知道所有答案，但需要接受角色會在互動裡被改變。世界觀、組織線、副本事件和角色關係會彼此交纏，最後長成屬於你自己的敘事軌跡。</p>
+      <!-- 資料索引 -->
+      <div class="grid lg:grid-cols-2 gap-12 mb-20">
+        <div>
+          <p class="font-mono text-xs tracking-[0.2em] text-white/50 mb-6 border-b border-white/10 pb-4">RACES</p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <article class="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+              <h3 class="font-serif text-lg text-white mb-2">人族</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">通常缺乏異能，但在交界處或異世界中有機會覺醒。</p>
             </article>
+            <article class="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+              <h3 class="font-serif text-lg text-white mb-2">魔族</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">活躍於裡世界，與慾望、混亂、誘惑與惡意密切相連。</p>
+            </article>
+            <article class="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+              <h3 class="font-serif text-lg text-white mb-2">亞人</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">長期被制度性邊緣化，也是最能適應灰色地帶的族群之一。</p>
+            </article>
+            <article class="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+              <h3 class="font-serif text-lg text-white mb-2">精靈</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">天生與魔力和自然高親和，強大、高傲、重視血統與榮耀。</p>
+            </article>
+          </div>
+        </div>
 
-            <div class="stats-row">
-              <div class="stat-card">
-                <strong>3</strong>
-                <span>核心世界層級</span>
-              </div>
-              <div class="stat-card">
-                <strong>4</strong>
-                <span>能力分級</span>
-              </div>
-              <div class="stat-card">
-                <strong>∞</strong>
-                <span>角色走向</span>
-              </div>
+        <div>
+          <p class="font-mono text-xs tracking-[0.2em] text-white/50 mb-6 border-b border-white/10 pb-4">POWER TIERS</p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <article class="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+              <h3 class="font-mono text-sm tracking-widest text-white mb-2 border-l-2 border-white pl-2">微效級</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">只在細節處留下痕跡。</p>
+            </article>
+            <article class="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+              <h3 class="font-mono text-sm tracking-widest text-white mb-2 border-l-2 border-theme-blue pl-2">個人級</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">能穩定融入日常，影響單一對象或小範圍。</p>
+            </article>
+            <article class="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+              <h3 class="font-mono text-sm tracking-widest text-white mb-2 border-l-2 border-theme-violet pl-2">街區級</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">足以壓制多名普通人。</p>
+            </article>
+            <article class="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+              <h3 class="font-mono text-sm tracking-widest text-white mb-2 border-l-2 border-theme-rose pl-2">戰略級</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">干涉尺度直指城市與集體記憶。</p>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <!-- 視覺走廊 (恢復本地路徑) -->
+      <div class="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+        <article class="relative rounded-2xl overflow-hidden group">
+          <img src="網站文案、圖片、資料/圖片/photo (10).png" alt="Fragment" class="w-full h-auto transition-transform duration-700 group-hover:scale-105">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <p class="font-mono text-xs tracking-[0.2em] text-white">Fragment / 10</p>
+          </div>
+        </article>
+        <article class="relative rounded-2xl overflow-hidden group">
+          <img src="網站文案、圖片、資料/圖片/photo (11).png" alt="Fragment" class="w-full h-auto transition-transform duration-700 group-hover:scale-105">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <p class="font-mono text-xs tracking-[0.2em] text-white">Fragment / 11</p>
+          </div>
+        </article>
+        <article class="relative rounded-2xl overflow-hidden group">
+          <img src="網站文案、圖片、資料/圖片/photo (12).png" alt="Fragment" class="w-full h-auto transition-transform duration-700 group-hover:scale-105">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <p class="font-mono text-xs tracking-[0.2em] text-white">Fragment / 12</p>
+          </div>
+        </article>
+        <article class="relative rounded-2xl overflow-hidden group">
+          <img src="網站文案、圖片、資料/圖片/photo (17).png" alt="Fragment" class="w-full h-auto transition-transform duration-700 group-hover:scale-105">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <p class="font-mono text-xs tracking-[0.2em] text-white">Fragment / 17</p>
+          </div>
+        </article>
+        <article class="relative rounded-2xl overflow-hidden group">
+          <img src="網站文案、圖片、資料/圖片/photo (19).png" alt="Fragment" class="w-full h-auto transition-transform duration-700 group-hover:scale-105">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <p class="font-mono text-xs tracking-[0.2em] text-white">Fragment / 19</p>
+          </div>
+        </article>
+        <article class="relative rounded-2xl overflow-hidden group">
+          <img src="網站文案、圖片、資料/圖片/photo (3).PNG" alt="Fragment" class="w-full h-auto transition-transform duration-700 group-hover:scale-105">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <p class="font-mono text-xs tracking-[0.2em] text-white">Fragment / 03</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 副本區塊 -->
+    <section id="raid" class="py-24 relative">
+      <div class="mb-12">
+        <p class="font-mono text-xs tracking-[0.2em] text-theme-rose mb-4">RAID / EVENT</p>
+        <h2 class="font-serif text-4xl lg:text-5xl text-white">封鎖副本：神眷島</h2>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-12 items-center mb-16">
+        <figure class="relative w-full aspect-video lg:aspect-square rounded-[2rem] overflow-hidden border border-theme-rose/20 shadow-[0_0_50px_rgba(255,175,207,0.1)]">
+          <img src="網站文案、圖片、資料/圖片/photo (16).png" alt="神眷島副本" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+          <figcaption class="absolute bottom-6 left-8 font-mono text-[10px] tracking-[0.2em] text-theme-rose">CURRENT OPERATION / CLOSED ISLE</figcaption>
+        </figure>
+
+        <div class="flex flex-col gap-6">
+          <p class="font-mono text-sm tracking-widest text-theme-rose bg-theme-rose/10 self-start px-4 py-1.5 rounded-full border border-theme-rose/20">危險等級 / IV</p>
+          <h3 class="font-serif text-3xl lg:text-4xl text-white leading-tight">海圖之外，只有被祭儀選中的人才能踏上岸線。</h3>
+          <p class="text-gray-400 leading-relaxed text-lg">
+            神眷島是一座不存在於海圖上的封閉孤島。對外來者而言，這裡不是觀光地，而是一座會慢慢改寫立場、身份與離島意志的封鎖裝置。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 入界區塊 -->
+    <section id="join" class="py-24">
+      <div class="text-center mb-16">
+        <p class="font-mono text-xs tracking-[0.2em] text-theme-violet mb-4">JOIN / ENTER</p>
+        <h2 class="font-serif text-4xl lg:text-5xl text-white text-glow">讓角色穿過門檻，也讓你正式進來。</h2>
+      </div>
+
+      <div class="glass-card rounded-[3rem] p-8 lg:p-12 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+          
+          <div class="flex flex-col gap-10">
+            <div>
+              <p class="font-mono text-[10px] tracking-[0.2em] text-gray-500 mb-4 border-b border-white/10 pb-2 inline-block">Entry Brief</p>
+              <p class="text-gray-300 leading-relaxed text-lg">
+                如果你喜歡原創世界觀、願意閱讀設定、想把角色放進真正會回應你的秩序與裂隙裡，那《慾郁》會是一個值得停留的地方。
+              </p>
             </div>
 
-            <div class="hero-actions">
-              <a class="button button--primary" href="https://discord.com" target="_blank" rel="noreferrer">Discord Invite</a>
-              <a class="button" href="https://x.com" target="_blank" rel="noreferrer">X</a>
-              <a class="button" href="https://www.pixiv.net" target="_blank" rel="noreferrer">Pixiv</a>
+            <div class="flex flex-wrap gap-4 mt-2">
+              <a href="https://discord.gg/bbKvygGwKG" target="_blank" rel="noreferrer" class="px-8 py-4 rounded-full bg-theme-violet text-black font-bold tracking-widest text-sm hover:bg-white transition-colors">Discord Invite</a>
+              <a href="#world-codex" class="px-8 py-4 rounded-full border border-gray-600 text-white font-medium tracking-widest text-sm hover:bg-gray-800 transition-colors">伺服器規則</a>
+              <a href="#world" class="px-8 py-4 rounded-full border border-gray-600 text-white font-medium tracking-widest text-sm hover:bg-gray-800 transition-colors">世界觀總覽</a>
             </div>
           </div>
 
-          <figure class="join-portrait">
-            <img src="網站文案、圖片、資料/圖片/photo (14).png" alt="入界角色視覺" loading="lazy">
-          </figure>
-        </div>
-      </section>
-    </main>
+          <div class="flex flex-col gap-8">
+            <figure class="relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/10">
+              <img src="網站文案、圖片、資料/圖片/photo (14).png" alt="入界" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-gradient-to-t from-[#05050a] via-black/30 to-transparent"></div>
+            </figure>
+          </div>
 
-    <footer class="footer">
-      <div class="footer-inner">
-        <span>慾郁｜沉浸式世界觀入口站</span>
-        <span>Pure HTML + CSS / Responsive Single Page</span>
+        </div>
       </div>
-    </footer>
-  </div>
+    </section>
+  </main>
+
+  <footer class="relative z-10 border-t border-white/10 bg-[#020205] pt-16 pb-8">
+    <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-start gap-8">
+      <div class="max-w-xl">
+        <p class="font-mono text-sm tracking-[0.2em] text-white mb-4">慾郁 / ROLEPLAY WORLD ENTRANCE</p>
+        <p class="text-xs text-gray-500 leading-relaxed">
+          表世界、交界處與裡世界的裂縫已經在此開啟。
+        </p>
+      </div>
+      <div class="flex gap-8 font-mono text-xs tracking-widest text-gray-400">
+        <a href="https://discord.gg/bbKvygGwKG" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">Discord</a>
+        <a href="https://x.com/Yu_Tristesse" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">X</a>
+        <a href="https://www.pixiv.net/users/125334607" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">Pixiv</a>
+      </div>
+    </div>
+  </footer>
+
 </body>
 </html>
-
